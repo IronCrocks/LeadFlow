@@ -1,11 +1,10 @@
 using System.Net;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
 namespace LeadFlow.Tests;
 
-public sealed class HomePageTests(WebApplicationFactory<global::Program> factory)
-    : IClassFixture<WebApplicationFactory<global::Program>>
+public sealed class HomePageTests(HomePageWebApplicationFactory factory)
+    : IClassFixture<HomePageWebApplicationFactory>
 {
     [Fact]
     public async Task GetRoot_ReturnsLandingPage()

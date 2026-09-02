@@ -1,0 +1,11 @@
+@{
+    ViewData["Title"] = "Административная часть";
+}
+
+<section class="admin-page">
+    <h1>Административная часть</h1>
+    <p>Вы вошли как менеджер.</p>
+    <form asp-controller="Account" asp-action="Logout" method="post">
+        <button type="submit">Выйти</button>
+    </form>
+</section>

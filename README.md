@@ -64,6 +64,17 @@ dotnet user-secrets set --project LeadFlow/LeadFlow.csproj \
 
 Позднее в этом же хранилище будут заданы начальный пароль менеджера и настройки Telegram. Их нельзя добавлять в репозиторий.
 
+### Начальный менеджер
+
+Чтобы включить вход в административную часть, задайте email и пароль менеджера через User Secrets:
+
+```bash
+dotnet user-secrets set --project LeadFlow/LeadFlow.csproj "InitialManager:Email" "manager@example.com"
+dotnet user-secrets set --project LeadFlow/LeadFlow.csproj "InitialManager:Password" "<надёжный-пароль-не-короче-12-символов>"
+```
+
+При следующем запуске приложения менеджер будет создан в БД, если пользователя с таким email ещё нет. Не добавляйте эти значения в `appsettings*.json` или `.env.example`.
+
 ### Проверка приложения
 
 ```bash

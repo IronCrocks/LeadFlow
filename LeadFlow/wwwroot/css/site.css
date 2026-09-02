@@ -30,3 +30,28 @@ body {
 .error-page h1 {
     margin-top: 0;
 }
+
+.login-page {
+    max-width: 28rem;
+}
+
+.form-field {
+    display: grid;
+    gap: 0.35rem;
+    margin-bottom: 1rem;
+}
+
+input,
+button {
+    font: inherit;
+    padding: 0.5rem;
+}
+
+button {
+    cursor: pointer;
+}
+
+.validation-summary,
+.validation-message {
+    color: #b91c1c;
+}

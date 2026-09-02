@@ -1,0 +1,23 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Вход";
+}
+
+<section class="login-page">
+    <h1>Вход для менеджера</h1>
+    <form asp-action="Login" method="post" novalidate>
+        <input asp-for="ReturnUrl" type="hidden" />
+        <div asp-validation-summary="All" class="validation-summary"></div>
+        <div class="form-field">
+            <label asp-for="Email"></label>
+            <input asp-for="Email" autocomplete="username" />
+            <span asp-validation-for="Email" class="validation-message"></span>
+        </div>
+        <div class="form-field">
+            <label asp-for="Password"></label>
+            <input asp-for="Password" autocomplete="current-password" />
+            <span asp-validation-for="Password" class="validation-message"></span>
+        </div>
+        <button type="submit">Войти</button>
+    </form>
+</section>
