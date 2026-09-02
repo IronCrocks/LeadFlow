@@ -4,6 +4,7 @@ using LeadFlow.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using System.Security.Claims;
 
 namespace LeadFlow.Areas.Admin.Controllers;
 
@@ -12,6 +13,7 @@ namespace LeadFlow.Areas.Admin.Controllers;
 [Route("admin/leads")]
 public sealed class LeadsController(
     ILeadListQueryService leadListQueryService,
+    ILeadManagementService leadManagementService,
     IOptions<LeadFlowOptions> options) : Controller
 {
     [HttpGet("")]
@@ -35,6 +37,77 @@ public sealed class LeadsController(
                 TimeZoneInfo.ConvertTime(lead.CreatedAtUtc, timeZone),
                 GetStatusName(lead.Status))).ToArray()
         });
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
+    {
+        var details = await leadManagementService.GetDetailsAsync(id, cancellationToken);
+        return details is null ? NotFound() : View(ToViewModel(details));
+    }
+
+    [HttpPost("{id:guid}")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Update(
+        Guid id,
+        [Bind(Prefix = "Edit")] EditLeadViewModel model,
+        CancellationToken cancellationToken)
+    {
+        model = model.Normalize();
+        ModelState.Clear();
+        TryValidateModel(model, "Edit");
+
+        if (model.Status is { } status && !Enum.IsDefined(status))
+        {
+            ModelState.AddModelError("Edit.Status", "Выберите допустимый статус.");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            var details = await leadManagementService.GetDetailsAsync(id, cancellationToken);
+            return details is null ? NotFound() : View("Details", ToViewModel(details, model));
+        }
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userId, out var changedByUserId))
+        {
+            return Forbid();
+        }
+
+        var updated = await leadManagementService.UpdateAsync(
+            id,
+            new UpdateLeadCommand(model.Status!.Value, model.ManagerComment, changedByUserId),
+            cancellationToken);
+
+        return updated ? RedirectToAction(nameof(Details), new { id }) : NotFound();
+    }
+
+    private LeadDetailsViewModel ToViewModel(LeadDetails details, EditLeadViewModel? edit = null)
+    {
+        var timeZone = TimeZoneInfo.FindSystemTimeZoneById(options.Value.TimeZone);
+
+        return new LeadDetailsViewModel
+        {
+            Id = details.Id,
+            Name = details.Name,
+            Phone = details.Phone,
+            Email = details.Email,
+            Service = details.Service,
+            CustomerComment = details.CustomerComment,
+            CreatedAt = TimeZoneInfo.ConvertTime(details.CreatedAtUtc, timeZone),
+            Status = GetStatusName(details.Status),
+            Source = details.Source.ToString(),
+            Edit = edit ?? new EditLeadViewModel
+            {
+                Status = details.Status,
+                ManagerComment = details.ManagerComment
+            },
+            StatusHistory = details.StatusHistory.Select(history => new LeadStatusHistoryItemViewModel(
+                history.PreviousStatus is null ? null : GetStatusName(history.PreviousStatus.Value),
+                GetStatusName(history.NewStatus),
+                TimeZoneInfo.ConvertTime(history.ChangedAtUtc, timeZone),
+                history.ChangedByEmail)).ToArray()
+        };
     }
 
     private static string GetStatusName(LeadStatus status) => status switch

@@ -1,0 +1,78 @@
+@model LeadDetailsViewModel
+@using LeadFlow.Domain.Enums
+@{
+    ViewData["Title"] = $"Заявка {Model.Name}";
+}
+
+<section class="admin-page lead-details">
+    <a asp-action="Index">← К списку заявок</a>
+    <h1>Заявка</h1>
+
+    <dl class="lead-details-data">
+        <dt>Имя</dt>
+        <dd>@Model.Name</dd>
+        <dt>Телефон</dt>
+        <dd>@Model.Phone</dd>
+        <dt>Email</dt>
+        <dd>@(Model.Email ?? "Не указан")</dd>
+        <dt>Услуга</dt>
+        <dd>@Model.Service</dd>
+        <dt>Комментарий клиента</dt>
+        <dd>@(Model.CustomerComment ?? "Не указан")</dd>
+        <dt>Источник</dt>
+        <dd>@Model.Source</dd>
+        <dt>Создана</dt>
+        <dd>@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</dd>
+        <dt>Статус</dt>
+        <dd>@Model.Status</dd>
+    </dl>
+
+    <form asp-action="Update" asp-route-id="@Model.Id" method="post" class="lead-edit-form">
+        <h2>Обработка заявки</h2>
+        <div asp-validation-summary="All" class="validation-summary"></div>
+        <div class="form-field">
+            <label asp-for="Edit.Status">Статус</label>
+            <select asp-for="Edit.Status">
+                @foreach (var status in Enum.GetValues<LeadStatus>())
+                {
+                    <option value="@status">@GetStatusName(status)</option>
+                }
+            </select>
+            <span asp-validation-for="Edit.Status" class="validation-message"></span>
+        </div>
+        <div class="form-field">
+            <label asp-for="Edit.ManagerComment"></label>
+            <textarea asp-for="Edit.ManagerComment" rows="5"></textarea>
+            <span asp-validation-for="Edit.ManagerComment" class="validation-message"></span>
+        </div>
+        <button type="submit">Сохранить</button>
+    </form>
+
+    <section class="lead-history" aria-labelledby="history-title">
+        <h2 id="history-title">История статусов</h2>
+        <ol>
+            @foreach (var item in Model.StatusHistory)
+            {
+                <li>
+                    @item.ChangedAt.ToString("dd.MM.yyyy HH:mm") —
+                    @(item.PreviousStatus is null ? item.NewStatus : $"{item.PreviousStatus} → {item.NewStatus}")
+                    @if (!string.IsNullOrWhiteSpace(item.ChangedByEmail))
+                    {
+                        <span>(@item.ChangedByEmail)</span>
+                    }
+                </li>
+            }
+        </ol>
+    </section>
+</section>
+
+@functions {
+    private static string GetStatusName(LeadStatus status) => status switch
+    {
+        LeadStatus.New => "Новая",
+        LeadStatus.InProgress => "В работе",
+        LeadStatus.Completed => "Выполнена",
+        LeadStatus.Rejected => "Отказ",
+        _ => status.ToString()
+    };
+}

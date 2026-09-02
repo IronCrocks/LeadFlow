@@ -92,6 +92,26 @@ button {
     border-bottom: 1px solid #cbd5e1;
 }
 
+.lead-details-data {
+    display: grid;
+    grid-template-columns: minmax(10rem, max-content) 1fr;
+    gap: 0.5rem 1rem;
+}
+
+.lead-details-data dt {
+    font-weight: 700;
+}
+
+.lead-details-data dd {
+    margin: 0;
+}
+
+.lead-edit-form,
+.lead-history {
+    max-width: 38rem;
+    margin-top: 2rem;
+}
+
 button {
     cursor: pointer;
 }

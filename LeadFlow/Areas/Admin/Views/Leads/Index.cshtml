@@ -65,7 +65,7 @@
                     @foreach (var lead in Model.Leads)
                     {
                         <tr>
-                            <td>@lead.Name</td>
+                            <td><a asp-action="Details" asp-route-id="@lead.Id">@lead.Name</a></td>
                             <td>@lead.Phone</td>
                             <td>@lead.Service</td>
                             <td>@lead.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
