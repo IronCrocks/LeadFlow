@@ -1,0 +1,137 @@
+# =========================
+# .NET build output
+# =========================
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]uild/
+[Dd]ist/
+[Aa]rtifacts/
+
+# =========================
+# Visual Studio
+# =========================
+.vs/
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio generated files
+*.VC.db
+*.VC.VC.opendb
+*.opendb
+*.opensdf
+*.sdf
+
+# =========================
+# JetBrains Rider / IntelliJ
+# =========================
+.idea/
+*.sln.iml
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# =========================
+# NuGet
+# =========================
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+
+# NuGet package restore artifacts
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# =========================
+# Test results / coverage
+# =========================
+TestResults/
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
+coverage/
+coverage.*
+.coverage/
+
+# =========================
+# ASP.NET / local development
+# =========================
+wwwroot/lib/
+
+# Environment files / local secrets
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Local launch/profile overrides
+Properties/launchSettings.local.json
+appsettings.Local.json
+appsettings.*.Local.json
+
+# =========================
+# Databases / local runtime data
+# =========================
+*.db-shm
+*.db-wal
+
+# =========================
+# Local certificates / keys
+# =========================
+*.pfx
+*.p12
+
+# =========================
+# macOS
+# =========================
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# macOS volume metadata
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# =========================
+# Windows
+# =========================
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# =========================
+# Temporary files
+# =========================
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
