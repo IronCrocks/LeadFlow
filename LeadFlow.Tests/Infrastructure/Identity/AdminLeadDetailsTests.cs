@@ -152,6 +152,49 @@ public sealed class AdminLeadDetailsTests(PostgreSqlDatabaseFixture database) : 
         Assert.Single(lead.StatusHistory);
     }
 
+    [Fact]
+    public async Task Update_WithoutAntiforgeryToken_ReturnsBadRequestAndDoesNotChangeLead()
+    {
+        var leadId = await SeedLeadAsync();
+        using var client = CreateClient();
+        await LoginAsync(client);
+        using var form = new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["Edit.Status"] = LeadStatus.InProgress.ToString(),
+            ["Edit.ManagerComment"] = "Позвонить клиенту."
+        });
+
+        var response = await client.PostAsync($"/admin/leads/{leadId}", form);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        await using var context = database.CreateContext();
+        var lead = await context.Leads
+            .Include(item => item.StatusHistory)
+            .SingleAsync(item => item.Id == leadId);
+        Assert.Equal(LeadStatus.New, lead.Status);
+        Assert.Null(lead.ManagerComment);
+        Assert.Single(lead.StatusHistory);
+    }
+
+    [Fact]
+    public async Task GetDetails_ShowsStatusHistoryInChronologicalOrder()
+    {
+        var leadId = await SeedLeadWithStatusHistoryAsync();
+        using var client = CreateClient();
+        await LoginAsync(client);
+
+        var content = WebUtility.HtmlDecode(await client.GetStringAsync($"/admin/leads/{leadId}"));
+        var history = content[content.IndexOf("История статусов", StringComparison.Ordinal)..];
+
+        var created = history.IndexOf("Новая", StringComparison.Ordinal);
+        var started = history.IndexOf("Новая → В работе", StringComparison.Ordinal);
+        var completed = history.IndexOf("В работе → Выполнена", StringComparison.Ordinal);
+        Assert.True(created >= 0);
+        Assert.True(started > created);
+        Assert.True(completed > started);
+    }
+
     public void Dispose()
     {
         _factory.Dispose();
@@ -183,6 +226,52 @@ public sealed class AdminLeadDetailsTests(PostgreSqlDatabaseFixture database) : 
             NewStatus = LeadStatus.New,
             ChangedAtUtc = createdAt
         });
+        await context.SaveChangesAsync();
+
+        return lead.Id;
+    }
+
+    private async Task<Guid> SeedLeadWithStatusHistoryAsync()
+    {
+        var createdAt = new DateTimeOffset(2026, 9, 1, 9, 0, 0, TimeSpan.Zero);
+        var lead = new Lead
+        {
+            Id = Guid.NewGuid(),
+            SubmissionId = Guid.NewGuid(),
+            Name = "Иван Петров",
+            Phone = "+7 999 123-45-67",
+            Service = "Разработка сайта",
+            CreatedAtUtc = createdAt,
+            Status = LeadStatus.Completed,
+            Source = LeadSource.Website
+        };
+
+        await using var context = database.CreateContext();
+        context.Leads.Add(lead);
+        context.LeadStatusHistory.AddRange(
+            new LeadStatusHistory
+            {
+                Id = Guid.NewGuid(),
+                Lead = lead,
+                NewStatus = LeadStatus.New,
+                ChangedAtUtc = createdAt
+            },
+            new LeadStatusHistory
+            {
+                Id = Guid.NewGuid(),
+                Lead = lead,
+                PreviousStatus = LeadStatus.New,
+                NewStatus = LeadStatus.InProgress,
+                ChangedAtUtc = createdAt.AddMinutes(1)
+            },
+            new LeadStatusHistory
+            {
+                Id = Guid.NewGuid(),
+                Lead = lead,
+                PreviousStatus = LeadStatus.InProgress,
+                NewStatus = LeadStatus.Completed,
+                ChangedAtUtc = createdAt.AddMinutes(2)
+            });
         await context.SaveChangesAsync();
 
         return lead.Id;

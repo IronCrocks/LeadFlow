@@ -47,6 +47,16 @@ public sealed class TelegramLeadNotificationSenderTests
     }
 
     [Fact]
+    public void FormatMessage_WithoutCustomerComment_DoesNotContainCommentSection()
+    {
+        var message = TelegramLeadNotificationSender.FormatMessage(
+            new NewLeadNotification("Иван", "+7 999", "Консультация", null));
+
+        Assert.Equal("Новая заявка\n\nИмя: Иван\nТелефон: +7 999\nУслуга: Консультация", message);
+        Assert.DoesNotContain("Комментарий", message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task DisabledSender_DoesNotSendOrThrow()
     {
         var sender = new DisabledLeadNotificationSender();

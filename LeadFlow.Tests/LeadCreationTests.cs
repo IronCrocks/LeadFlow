@@ -164,6 +164,27 @@ public sealed class LeadCreationTests(PostgreSqlDatabaseFixture database) : IDis
         Assert.Equal(1, await context.Leads.CountAsync(item => item.Name == name));
     }
 
+    [Fact]
+    public async Task Create_WithoutAntiforgeryToken_ReturnsBadRequestAndDoesNotPersistLead()
+    {
+        using var client = CreateClient();
+        var name = $"Клиент {Guid.NewGuid():N}";
+        using var form = new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["Lead.SubmissionId"] = Guid.NewGuid().ToString(),
+            ["Lead.Name"] = name,
+            ["Lead.Phone"] = "+7 999 123-45-67",
+            ["Lead.Service"] = "Разработка сайта"
+        });
+
+        var response = await client.PostAsync("/leads", form);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        await using var context = database.CreateContext();
+        Assert.False(await context.Leads.AnyAsync(item => item.Name == name));
+    }
+
     public void Dispose()
     {
         _factory.Dispose();
