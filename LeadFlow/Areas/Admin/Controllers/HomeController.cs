@@ -9,5 +9,5 @@ namespace LeadFlow.Areas.Admin.Controllers;
 public sealed class HomeController : Controller
 {
     [HttpGet("")]
-    public IActionResult Index() => View();
+    public IActionResult Index() => RedirectToAction("Index", "Leads", new { area = "Admin" });
 }

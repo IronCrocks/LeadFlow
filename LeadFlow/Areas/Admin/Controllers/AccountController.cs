@@ -44,7 +44,7 @@ public sealed class AccountController(SignInManager<ApplicationUser> signInManag
             return LocalRedirect(model.ReturnUrl);
         }
 
-        return RedirectToAction("Index", "Home", new { area = "Admin" });
+        return RedirectToAction("Index", "Leads", new { area = "Admin" });
     }
 
     [Authorize]

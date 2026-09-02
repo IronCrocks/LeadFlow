@@ -68,6 +68,30 @@ button {
     max-width: 38rem;
 }
 
+.lead-list-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.lead-list-wrapper {
+    overflow-x: auto;
+}
+
+.lead-list {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.lead-list th,
+.lead-list td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #cbd5e1;
+}
+
 button {
     cursor: pointer;
 }

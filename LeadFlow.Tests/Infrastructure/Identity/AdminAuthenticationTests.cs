@@ -47,12 +47,12 @@ public sealed class AdminAuthenticationTests(PostgreSqlDatabaseFixture database)
             AuthenticationWebApplicationFactory.ManagerPassword);
 
         Assert.Equal(HttpStatusCode.Redirect, loginResponse.StatusCode);
+        Assert.Equal("/admin/leads", loginResponse.Headers.Location!.OriginalString);
 
         var adminResponse = await client.GetAsync("/admin");
 
-        Assert.Equal(HttpStatusCode.OK, adminResponse.StatusCode);
-        var content = await adminResponse.Content.ReadAsStringAsync();
-        Assert.Contains("Административная часть", content);
+        Assert.Equal(HttpStatusCode.Redirect, adminResponse.StatusCode);
+        Assert.Equal("/admin/leads", adminResponse.Headers.Location!.OriginalString);
     }
 
     [Fact]

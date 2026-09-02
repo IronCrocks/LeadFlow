@@ -12,6 +12,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.Configure<LeadFlowOptions>(builder.Configuration.GetSection(LeadFlowOptions.SectionName));
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<ILeadCreationService, LeadCreationService>();
+builder.Services.AddScoped<ILeadListQueryService, LeadListQueryService>();
 builder.Services.AddLeadNotifications(builder.Configuration);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
