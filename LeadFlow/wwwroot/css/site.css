@@ -42,9 +42,30 @@ body {
 }
 
 input,
+select,
+textarea,
 button {
     font: inherit;
     padding: 0.5rem;
+}
+
+.button-link {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.5rem 0.75rem;
+    color: #fff;
+    background: #1d4ed8;
+    text-decoration: none;
+}
+
+.services,
+.lead-form,
+.success-page {
+    margin-top: 2.5rem;
+}
+
+.lead-form {
+    max-width: 38rem;
 }
 
 button {

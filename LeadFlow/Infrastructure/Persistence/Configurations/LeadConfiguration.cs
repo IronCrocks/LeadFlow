@@ -12,6 +12,7 @@ public sealed class LeadConfiguration : IEntityTypeConfiguration<Lead>
 
         builder.HasKey(lead => lead.Id);
 
+        builder.Property(lead => lead.SubmissionId).IsRequired();
         builder.Property(lead => lead.Name).HasMaxLength(100).IsRequired();
         builder.Property(lead => lead.Phone).HasMaxLength(50).IsRequired();
         builder.Property(lead => lead.Email).HasMaxLength(254);
@@ -23,6 +24,7 @@ public sealed class LeadConfiguration : IEntityTypeConfiguration<Lead>
         builder.Property(lead => lead.Source).HasConversion<string>().HasMaxLength(32).IsRequired();
 
         builder.HasIndex(lead => new { lead.Status, lead.CreatedAtUtc });
+        builder.HasIndex(lead => lead.SubmissionId).IsUnique();
 
         builder.HasMany(lead => lead.StatusHistory)
             .WithOne(history => history.Lead)

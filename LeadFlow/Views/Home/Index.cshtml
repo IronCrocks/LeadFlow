@@ -1,8 +1,60 @@
+@model LandingPageViewModel
 @{
     ViewData["Title"] = "LeadFlow";
 }
 
 <section class="hero">
     <h1>LeadFlow</h1>
-    <p>Система для сбора и обработки заявок клиентов.</p>
+    <p>Помогаем небольшим компаниям не терять обращения клиентов.</p>
+    <a class="button-link" href="#lead-form">Оставить заявку</a>
+</section>
+
+<section class="services" aria-labelledby="services-title">
+    <h2 id="services-title">Наши услуги</h2>
+    <ul>
+        @foreach (var service in Model.Services)
+        {
+            <li>@service</li>
+        }
+    </ul>
+</section>
+
+<section id="lead-form" class="lead-form" aria-labelledby="lead-form-title">
+    <h2 id="lead-form-title">Расскажите о вашей задаче</h2>
+    <form asp-controller="Leads" asp-action="Create" method="post">
+        <input asp-for="Lead.SubmissionId" type="hidden" />
+        <div asp-validation-summary="All" class="validation-summary"></div>
+        <div class="form-field">
+            <label asp-for="Lead.Name"></label>
+            <input asp-for="Lead.Name" autocomplete="name" />
+            <span asp-validation-for="Lead.Name" class="validation-message"></span>
+        </div>
+        <div class="form-field">
+            <label asp-for="Lead.Phone"></label>
+            <input asp-for="Lead.Phone" autocomplete="tel" />
+            <span asp-validation-for="Lead.Phone" class="validation-message"></span>
+        </div>
+        <div class="form-field">
+            <label asp-for="Lead.Email"></label>
+            <input asp-for="Lead.Email" autocomplete="email" />
+            <span asp-validation-for="Lead.Email" class="validation-message"></span>
+        </div>
+        <div class="form-field">
+            <label asp-for="Lead.Service"></label>
+            <select asp-for="Lead.Service">
+                <option value="">Выберите услугу</option>
+                @foreach (var service in Model.Services)
+                {
+                    <option value="@service">@service</option>
+                }
+            </select>
+            <span asp-validation-for="Lead.Service" class="validation-message"></span>
+        </div>
+        <div class="form-field">
+            <label asp-for="Lead.CustomerComment"></label>
+            <textarea asp-for="Lead.CustomerComment" rows="5"></textarea>
+            <span asp-validation-for="Lead.CustomerComment" class="validation-message"></span>
+        </div>
+        <button type="submit">Отправить заявку</button>
+    </form>
 </section>

@@ -14,6 +14,7 @@ public sealed class LeadPersistenceTests(PostgreSqlDatabaseFixture database)
         using var context = database.CreateContext();
         var lead = context.Model.FindEntityType(typeof(Lead))!;
 
+        Assert.False(lead.FindProperty(nameof(Lead.SubmissionId))!.IsNullable);
         Assert.Equal(100, lead.FindProperty(nameof(Lead.Name))!.GetMaxLength());
         Assert.False(lead.FindProperty(nameof(Lead.Name))!.IsNullable);
         Assert.Equal(50, lead.FindProperty(nameof(Lead.Phone))!.GetMaxLength());
@@ -28,6 +29,10 @@ public sealed class LeadPersistenceTests(PostgreSqlDatabaseFixture database)
             lead.GetIndexes(),
             index => index.Properties.Select(property => property.Name)
                 .SequenceEqual([nameof(Lead.Status), nameof(Lead.CreatedAtUtc)]));
+        Assert.Contains(
+            lead.GetIndexes(),
+            index => index.IsUnique && index.Properties.Select(property => property.Name)
+                .SequenceEqual([nameof(Lead.SubmissionId)]));
 
         var history = context.Model.FindEntityType(typeof(LeadStatusHistory))!;
         Assert.Contains(
@@ -135,6 +140,7 @@ public sealed class LeadPersistenceTests(PostgreSqlDatabaseFixture database)
         return new Lead
         {
             Id = Guid.NewGuid(),
+            SubmissionId = Guid.NewGuid(),
             Name = "Иван Петров",
             Phone = "+7 999 123-45-67",
             Email = "ivan@example.com",
