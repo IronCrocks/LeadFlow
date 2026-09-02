@@ -1,0 +1,32 @@
+:root {
+    color: #1f2937;
+    background: #f8fafc;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    margin: 0;
+}
+
+.site-header {
+    padding: 1rem 2rem;
+    background: #0f172a;
+}
+
+.brand {
+    color: #fff;
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+}
+
+.hero h1,
+.error-page h1 {
+    margin-top: 0;
+}

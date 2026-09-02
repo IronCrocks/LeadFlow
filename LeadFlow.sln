@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeadFlow", "LeadFlow\LeadFlow.csproj", "{B7267D1D-6D52-4C80-AA88-E802824469EE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeadFlow.Tests", "LeadFlow.Tests\LeadFlow.Tests.csproj", "{A6B074CF-1A98-4E78-8C4A-1FB4CEAC7049}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{B7267D1D-6D52-4C80-AA88-E802824469EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B7267D1D-6D52-4C80-AA88-E802824469EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B7267D1D-6D52-4C80-AA88-E802824469EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6B074CF-1A98-4E78-8C4A-1FB4CEAC7049}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6B074CF-1A98-4E78-8C4A-1FB4CEAC7049}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6B074CF-1A98-4E78-8C4A-1FB4CEAC7049}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6B074CF-1A98-4E78-8C4A-1FB4CEAC7049}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
