@@ -2,6 +2,7 @@ using LeadFlow.Application.Leads;
 using LeadFlow.Domain.Entities;
 using LeadFlow.Infrastructure.Identity;
 using LeadFlow.Infrastructure.Persistence;
+using LeadFlow.Infrastructure.Telegram;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +12,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.Configure<LeadFlowOptions>(builder.Configuration.GetSection(LeadFlowOptions.SectionName));
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<ILeadCreationService, LeadCreationService>();
+builder.Services.AddLeadNotifications(builder.Configuration);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 var initialManagerEmail = builder.Configuration["InitialManager:Email"];

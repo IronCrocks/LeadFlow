@@ -1,11 +1,15 @@
 using LeadFlow.Domain.Entities;
 using LeadFlow.Domain.Enums;
+using LeadFlow.Application.Notifications;
 using LeadFlow.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace LeadFlow.Application.Leads;
 
-public sealed class LeadCreationService(ApplicationDbContext dbContext, TimeProvider timeProvider)
+public sealed class LeadCreationService(
+    ApplicationDbContext dbContext,
+    TimeProvider timeProvider,
+    ILeadNotificationSender notificationSender)
     : ILeadCreationService
 {
     public async Task CreateAsync(CreateLeadCommand command, CancellationToken cancellationToken = default)
@@ -49,7 +53,13 @@ public sealed class LeadCreationService(ApplicationDbContext dbContext, TimeProv
             {
                 throw;
             }
+
+            return;
         }
+
+        await notificationSender.SendNewLeadAsync(
+            new NewLeadNotification(lead.Name, lead.Phone, lead.Service, lead.CustomerComment),
+            cancellationToken);
     }
 
     private static string? NormalizeOptional(string? value)

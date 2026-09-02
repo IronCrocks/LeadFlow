@@ -1,4 +1,6 @@
+using LeadFlow.Application.Notifications;
 using LeadFlow.Infrastructure.Persistence;
+using LeadFlow.Infrastructure.Telegram;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +17,7 @@ public sealed class LeadCreationWebApplicationFactory(string connectionString)
         builder.ConfigureServices(services =>
         {
             services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
+            services.AddSingleton<ILeadNotificationSender, DisabledLeadNotificationSender>();
         });
     }
 }

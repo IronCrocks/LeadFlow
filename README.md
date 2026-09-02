@@ -62,7 +62,7 @@ dotnet user-secrets set --project LeadFlow/LeadFlow.csproj \
   "Host=localhost;Port=5432;Database=leadflow;Username=leadflow;Password=<пароль-из-.env>"
 ```
 
-Позднее в этом же хранилище будут заданы начальный пароль менеджера и настройки Telegram. Их нельзя добавлять в репозиторий.
+В этом же хранилище задаются пароль начального менеджера и настройки Telegram. Их нельзя добавлять в репозиторий.
 
 ### Начальный менеджер
 
@@ -74,6 +74,17 @@ dotnet user-secrets set --project LeadFlow/LeadFlow.csproj "InitialManager:Passw
 ```
 
 При следующем запуске приложения менеджер будет создан в БД, если пользователя с таким email ещё нет. Не добавляйте эти значения в `appsettings*.json` или `.env.example`.
+
+### Telegram-уведомления
+
+Чтобы включить уведомления о новых заявках, задайте оба значения через User Secrets:
+
+```bash
+dotnet user-secrets set --project LeadFlow/LeadFlow.csproj "Telegram:BotToken" "<токен-бота>"
+dotnet user-secrets set --project LeadFlow/LeadFlow.csproj "Telegram:ChatId" "<идентификатор-чата>"
+```
+
+Если отсутствует хотя бы одно из значений, приложение работает без отправки уведомлений. После настройки запустите приложение, отправьте форму на лендинге и убедитесь, что в Telegram пришло сообщение с именем, телефоном, услугой и комментарием клиента.
 
 ### Проверка приложения
 
