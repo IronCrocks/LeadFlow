@@ -1,51 +1,17 @@
-using LeadFlow.Application.Authentication;
 using LeadFlow.Application.Leads;
-using LeadFlow.Application.Managers;
-using LeadFlow.Application.Persistence;
+using LeadFlow.Infrastructure;
 using LeadFlow.Infrastructure.Identity;
-using LeadFlow.Infrastructure.Persistence;
-using LeadFlow.Infrastructure.Telegram;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 builder.Services.Configure<LeadFlowOptions>(builder.Configuration.GetSection(LeadFlowOptions.SectionName));
 builder.Services.AddSingleton(TimeProvider.System);
-builder.Services.AddScoped<IApplicationDbContext>(serviceProvider =>
-    serviceProvider.GetRequiredService<ApplicationDbContext>());
 builder.Services.AddScoped<ILeadCreationService, LeadCreationService>();
 builder.Services.AddScoped<ILeadListQueryService, LeadListQueryService>();
 builder.Services.AddScoped<ILeadManagementService, LeadManagementService>();
-builder.Services.AddScoped<IManagerAuthenticationService, IdentityManagerAuthenticationService>();
-builder.Services.AddScoped<IManagerDirectory, IdentityManagerDirectory>();
-builder.Services.AddLeadNotifications(builder.Configuration);
-
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-var initialManagerEmail = builder.Configuration["InitialManager:Email"];
-var initialManagerPassword = builder.Configuration["InitialManager:Password"];
-InitialManagerConfiguration.Validate(initialManagerEmail, initialManagerPassword, connectionString);
-
-if (!string.IsNullOrWhiteSpace(connectionString))
-{
-    builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
-}
-builder.Services.Configure<InitialManagerOptions>(builder.Configuration.GetSection(InitialManagerOptions.SectionName));
-builder.Services.AddScoped<InitialManagerInitializer>();
-
-builder.Services
-    .AddIdentityCore<ApplicationUser>(options =>
-    {
-        options.User.RequireUniqueEmail = true;
-        options.Password.RequiredLength = 12;
-        options.Password.RequireDigit = true;
-        options.Password.RequireLowercase = true;
-        options.Password.RequireUppercase = true;
-        options.Password.RequireNonAlphanumeric = true;
-    })
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddSignInManager();
+builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services
     .AddAuthentication(IdentityConstants.ApplicationScheme)

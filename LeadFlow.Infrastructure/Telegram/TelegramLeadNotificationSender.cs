@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using LeadFlow.Application.Notifications;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 
 namespace LeadFlow.Infrastructure.Telegram;
 

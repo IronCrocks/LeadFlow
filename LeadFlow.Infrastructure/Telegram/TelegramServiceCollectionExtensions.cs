@@ -1,4 +1,6 @@
 using LeadFlow.Application.Notifications;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace LeadFlow.Infrastructure.Telegram;
