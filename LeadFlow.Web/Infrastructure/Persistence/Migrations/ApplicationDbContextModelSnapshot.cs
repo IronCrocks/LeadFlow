@@ -22,7 +22,7 @@ namespace LeadFlow.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("LeadFlow.Domain.Entities.ApplicationUser", b =>
+            modelBuilder.Entity("LeadFlow.Infrastructure.Identity.ApplicationUser", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -245,7 +245,7 @@ namespace LeadFlow.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("LeadFlow.Domain.Entities.LeadStatusHistory", b =>
                 {
-                    b.HasOne("LeadFlow.Domain.Entities.ApplicationUser", "ChangedByUser")
+                    b.HasOne("LeadFlow.Infrastructure.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("ChangedByUserId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -256,14 +256,12 @@ namespace LeadFlow.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ChangedByUser");
-
                     b.Navigation("Lead");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
                 {
-                    b.HasOne("LeadFlow.Domain.Entities.ApplicationUser", null)
+                    b.HasOne("LeadFlow.Infrastructure.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -272,7 +270,7 @@ namespace LeadFlow.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
                 {
-                    b.HasOne("LeadFlow.Domain.Entities.ApplicationUser", null)
+                    b.HasOne("LeadFlow.Infrastructure.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -281,7 +279,7 @@ namespace LeadFlow.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
                 {
-                    b.HasOne("LeadFlow.Domain.Entities.ApplicationUser", null)
+                    b.HasOne("LeadFlow.Infrastructure.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)

@@ -17,6 +17,4 @@ public sealed class LeadStatusHistory
     public DateTimeOffset ChangedAtUtc { get; set; }
 
     public Guid? ChangedByUserId { get; set; }
-
-    public ApplicationUser? ChangedByUser { get; set; }
 }

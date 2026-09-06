@@ -1,4 +1,3 @@
-using LeadFlow.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 

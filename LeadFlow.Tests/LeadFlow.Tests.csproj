@@ -19,7 +19,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="../LeadFlow/LeadFlow.csproj" />
+        <ProjectReference Include="../LeadFlow.Web/LeadFlow.Web.csproj" />
+        <ProjectReference Include="../LeadFlow.Domain/LeadFlow.Domain.csproj" />
+        <ProjectReference Include="../LeadFlow.Infrastructure/LeadFlow.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>

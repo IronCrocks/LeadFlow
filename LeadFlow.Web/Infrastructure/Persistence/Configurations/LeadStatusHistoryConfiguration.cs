@@ -1,4 +1,5 @@
 using LeadFlow.Domain.Entities;
+using LeadFlow.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -18,7 +19,7 @@ public sealed class LeadStatusHistoryConfiguration : IEntityTypeConfiguration<Le
 
         builder.HasIndex(history => history.LeadId);
 
-        builder.HasOne(history => history.ChangedByUser)
+        builder.HasOne<ApplicationUser>()
             .WithMany()
             .HasForeignKey(history => history.ChangedByUserId)
             .OnDelete(DeleteBehavior.SetNull);

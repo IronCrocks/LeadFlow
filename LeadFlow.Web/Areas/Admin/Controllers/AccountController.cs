@@ -1,5 +1,5 @@
 using LeadFlow.Areas.Admin.ViewModels;
-using LeadFlow.Domain.Entities;
+using LeadFlow.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

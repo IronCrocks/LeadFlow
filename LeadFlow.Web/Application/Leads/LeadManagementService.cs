@@ -30,7 +30,12 @@ public sealed class LeadManagementService(ApplicationDbContext dbContext, TimePr
                         history.PreviousStatus,
                         history.NewStatus,
                         history.ChangedAtUtc,
-                        history.ChangedByUser == null ? null : history.ChangedByUser.Email))
+                        history.ChangedByUserId == null
+                            ? null
+                            : dbContext.Users
+                                .Where(user => user.Id == history.ChangedByUserId)
+                                .Select(user => user.Email)
+                                .FirstOrDefault()))
                     .ToList()))
             .SingleOrDefaultAsync(cancellationToken);
     }

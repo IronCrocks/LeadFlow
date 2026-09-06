@@ -1,5 +1,4 @@
 using LeadFlow.Application.Leads;
-using LeadFlow.Domain.Entities;
 using LeadFlow.Infrastructure.Identity;
 using LeadFlow.Infrastructure.Persistence;
 using LeadFlow.Infrastructure.Telegram;

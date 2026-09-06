@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace LeadFlow.Domain.Entities;
+namespace LeadFlow.Infrastructure.Identity;
 
 public sealed class ApplicationUser : IdentityUser<Guid>;

@@ -16,4 +16,10 @@
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
     </ItemGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="../LeadFlow.Application/LeadFlow.Application.csproj" />
+        <ProjectReference Include="../LeadFlow.Domain/LeadFlow.Domain.csproj" />
+        <ProjectReference Include="../LeadFlow.Infrastructure/LeadFlow.Infrastructure.csproj" />
+    </ItemGroup>
+
 </Project>
