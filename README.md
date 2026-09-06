@@ -1,8 +1,16 @@
 # LeadFlow
 
-## Локальная разработка
+LeadFlow — MVP для приёма заявок с лендинга и их обработки менеджером.
 
-Требования: .NET SDK 10 и Docker Desktop с Docker Compose.
+## Локальный запуск
+
+Требования: .NET SDK 10, Docker Desktop с Docker Compose и доступная команда `dotnet ef`.
+
+Если Entity Framework CLI ещё не установлена, установите её один раз:
+
+```bash
+dotnet tool install --global dotnet-ef
+```
 
 ### PostgreSQL
 
@@ -64,6 +72,8 @@ dotnet user-secrets set --project LeadFlow/LeadFlow.csproj \
 
 В этом же хранилище задаются пароль начального менеджера и настройки Telegram. Их нельзя добавлять в репозиторий.
 
+Вместо User Secrets можно использовать переменные окружения: замените `:` в ключах на `__`, например `ConnectionStrings__DefaultConnection` и `InitialManager__Password`.
+
 ### Начальный менеджер
 
 Чтобы включить вход в административную часть, задайте email и пароль менеджера через User Secrets:
@@ -75,6 +85,24 @@ dotnet user-secrets set --project LeadFlow/LeadFlow.csproj "InitialManager:Passw
 
 При следующем запуске приложения менеджер будет создан в БД, если пользователя с таким email ещё нет. Не добавляйте эти значения в `appsettings*.json` или `.env.example`.
 
+### Применение миграций
+
+После настройки connection string примените схему к локальной PostgreSQL:
+
+```bash
+dotnet ef database update --project LeadFlow/LeadFlow.csproj
+```
+
+Команда использует ту же строку подключения из User Secrets или environment variables. Если она не задана, миграция завершится с диагностичным сообщением, не раскрывая пароль.
+
+### Запуск приложения
+
+```bash
+dotnet run --project LeadFlow/LeadFlow.csproj
+```
+
+После запуска откройте адрес, выведенный в консоль (обычно `https://localhost:xxxx`). Лендинг доступен по `/`, а вход менеджера — по `/admin/login`. При первом запуске после задания `InitialManager` создаётся пользователь менеджера.
+
 ### Telegram-уведомления
 
 Чтобы включить уведомления о новых заявках, задайте оба значения через User Secrets:
@@ -84,11 +112,33 @@ dotnet user-secrets set --project LeadFlow/LeadFlow.csproj "Telegram:BotToken" "
 dotnet user-secrets set --project LeadFlow/LeadFlow.csproj "Telegram:ChatId" "<идентификатор-чата>"
 ```
 
-Если отсутствует хотя бы одно из значений, приложение работает без отправки уведомлений. После настройки запустите приложение, отправьте форму на лендинге и убедитесь, что в Telegram пришло сообщение с именем, телефоном, услугой и комментарием клиента.
+Если отсутствует хотя бы одно из значений, приложение работает без отправки уведомлений. Это не мешает запуску, созданию заявок и работе менеджера.
 
-### Проверка приложения
+### Ручная Telegram smoke-проверка
+
+Эта проверка выполняется только владельцем реальных секретов. Не передавайте `BotToken` и `ChatId` в чат, код или файлы репозитория.
+
+1. Убедитесь, что PostgreSQL запущен, миграции применены, а `ConnectionStrings:DefaultConnection`, `InitialManager:Email` и `InitialManager:Password` заданы.
+2. Задайте `Telegram:BotToken` и `Telegram:ChatId` через User Secrets командами выше.
+3. Запустите приложение и отправьте на `/` новую заявку с именем, телефоном, услугой и непустым комментарием.
+4. Убедитесь, что браузер перенаправлен на `/leads/success`, а в Telegram пришло одно plaintext-сообщение с этими полями.
+5. Войдите через `/admin/login`, найдите заявку и проверьте её статус `Новая`, данные клиента и первую запись истории статусов.
+6. Измените статус на `В работе`, сохраните карточку и убедитесь, что появилась вторая запись истории.
+
+Для возврата к режиму без уведомлений удалите оба Telegram-значения из User Secrets:
 
 ```bash
-dotnet build LeadFlow.sln
+dotnet user-secrets remove --project LeadFlow/LeadFlow.csproj "Telegram:BotToken"
+dotnet user-secrets remove --project LeadFlow/LeadFlow.csproj "Telegram:ChatId"
+```
+
+Ошибка Telegram не должна отменить сохранение заявки: её нужно проверить по логам без вывода токена и без полного текста заявки.
+
+### Автоматические проверки
+
+```bash
+dotnet build LeadFlow.sln --warnaserror
 dotnet test LeadFlow.sln
 ```
+
+Автоматические тесты используют отдельную PostgreSQL в Testcontainers и не вызывают реальный Telegram Bot API. Для их запуска Docker Desktop должен быть включён.

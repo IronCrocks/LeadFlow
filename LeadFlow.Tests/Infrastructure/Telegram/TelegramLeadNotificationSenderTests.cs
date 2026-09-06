@@ -18,7 +18,7 @@ public sealed class TelegramLeadNotificationSenderTests
     public async Task SendNewLeadAsync_SendsExpectedPlainTextRequest()
     {
         var handler = new RecordingHttpMessageHandler(HttpStatusCode.OK);
-        var sender = CreateTelegramSender(handler);
+        var sender = CreateTelegramSender(handler, "123456:test-token");
 
         await sender.SendNewLeadAsync(new NewLeadNotification(
             "Иван",
@@ -27,7 +27,7 @@ public sealed class TelegramLeadNotificationSenderTests
             "Нужен лендинг."));
 
         Assert.Equal(HttpMethod.Post, handler.Request!.Method);
-        Assert.Equal("/bottest-token/sendMessage", handler.Request.RequestUri!.AbsolutePath);
+        Assert.Equal("/bot123456:test-token/sendMessage", handler.Request.RequestUri!.AbsolutePath);
 
         using var document = JsonDocument.Parse(handler.RequestBody!);
         var root = document.RootElement;
@@ -108,7 +108,9 @@ public sealed class TelegramLeadNotificationSenderTests
             message => message.Category.StartsWith("System.Net.Http.HttpClient", StringComparison.Ordinal));
     }
 
-    private static TelegramLeadNotificationSender CreateTelegramSender(RecordingHttpMessageHandler handler)
+    private static TelegramLeadNotificationSender CreateTelegramSender(
+        RecordingHttpMessageHandler handler,
+        string botToken = "test-token")
     {
         var client = new HttpClient(handler)
         {
@@ -116,7 +118,7 @@ public sealed class TelegramLeadNotificationSenderTests
         };
         var options = Options.Create(new TelegramOptions
         {
-            BotToken = "test-token",
+            BotToken = botToken,
             ChatId = "123456"
         });
 

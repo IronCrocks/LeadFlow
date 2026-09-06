@@ -20,7 +20,7 @@ public sealed class TelegramLeadNotificationSender(
         try
         {
             using var response = await httpClient.PostAsJsonAsync(
-                $"bot{settings.BotToken}/sendMessage",
+                $"./bot{settings.BotToken}/sendMessage",
                 new
                 {
                     chat_id = settings.ChatId,
