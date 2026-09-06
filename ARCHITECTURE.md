@@ -1,10 +1,12 @@
-# LeadFlow — архитектура MVP
+# LeadFlow — архитектура приложения
 
 ## 1. Статус документа
 
-Этот документ фиксирует архитектуру LeadFlow на этапе MVP и является основой для последующего плана реализации.
+Этот документ фиксирует целевую архитектуру LeadFlow после завершения MVP и является основой для последующего плана реализации и рефакторинга.
 
 Архитектура считается утверждённой после явного согласования пользователем. После утверждения изменения архитектурных решений выполняются только через отдельный согласованный пересмотр этого документа.
+
+Редакция с разделением решения на проекты имеет статус **Proposed** до отдельного утверждения. Причины, альтернативы и последствия решения зафиксированы в `docs/adr/0001-split-solution-into-layered-projects.md`.
 
 ## 2. Архитектурные цели
 
@@ -37,9 +39,9 @@ LeadFlow реализуется как модульный монолит: одн
 3. **Domain** — бизнес-сущности, статусы и источники заявок.
 4. **Infrastructure** — Entity Framework Core, ASP.NET Core Identity, PostgreSQL и клиент Telegram Bot API.
 
-Все слои размещаются в одном основном проекте. Отдельные проекты для каждого слоя на этапе MVP не создаются: при текущем размере системы это увеличило бы сложность без практической пользы. Границы поддерживаются структурой каталогов и направлением зависимостей.
+Логические слои разделяются на проекты `LeadFlow.Web`, `LeadFlow.Application`, `LeadFlow.Domain` и `LeadFlow.Infrastructure`. Это физически закрепляет направления зависимостей, но не превращает приложение в распределённую систему: запускается и развёртывается только `LeadFlow.Web`, база данных остаётся общей.
 
-Прямой доступ controllers к `DbContext` не допускается. Controllers работают через прикладные сервисы. Entity Framework Core используется как unit of work; отдельный generic repository не вводится.
+Прямой доступ controllers к `DbContext` не допускается. Controllers работают через `LeadCreationService`, `LeadManagementService`, query-сервисы и их контракты. Application-сервисы зависят от `IApplicationDbContext`, а инфраструктура предоставляет реализацию на EF Core. Entity Framework Core используется как unit of work; отдельный generic repository не вводится.
 
 ## 4. Контекст системы
 
@@ -71,40 +73,86 @@ flowchart LR
 
 ## 6. Структура решения
 
-Существующая структура решения сохраняется и расширяется без переноса исходного проекта:
+Целевая структура решения:
 
 ```text
 LeadFlow.sln
-├── LeadFlow/
+├── LeadFlow.Web/
 │   ├── Areas/
 │   │   └── Admin/
 │   │       ├── Controllers/
 │   │       ├── ViewModels/
 │   │       └── Views/
-│   ├── Application/
-│   │   ├── Leads/
-│   │   └── Notifications/
 │   ├── Controllers/
-│   ├── Domain/
-│   │   ├── Entities/
-│   │   └── Enums/
-│   ├── Infrastructure/
-│   │   ├── Identity/
-│   │   ├── Persistence/
-│   │   └── Telegram/
 │   ├── ViewModels/
 │   ├── Views/
 │   ├── wwwroot/
 │   └── Program.cs
+├── LeadFlow.Application/
+│   ├── Authentication/
+│   ├── Leads/
+│   │   ├── Creation/
+│   │   ├── Listing/
+│   │   └── Management/
+│   ├── Managers/
+│   ├── Notifications/
+│   └── Persistence/
+├── LeadFlow.Domain/
+│   └── Leads/
+├── LeadFlow.Infrastructure/
+│   ├── Identity/
+│   ├── Persistence/
+│   │   ├── Configurations/
+│   │   └── Migrations/
+│   ├── Telegram/
+│   └── DependencyInjection.cs
 ├── LeadFlow.Tests/
+│   ├── Unit/
+│   └── Integration/
+├── docs/
+│   └── adr/
 ├── compose.yaml
 ├── REQUIREMENTS.md
-└── ARCHITECTURE.md
+├── ARCHITECTURE.md
+└── IMPLEMENTATION_PLAN.md
 ```
 
-`Program.cs` остаётся composition root: в нём регистрируются MVC, authentication/authorization, application services, database и внешние клиенты.
+`LeadFlow.Web/Program.cs` остаётся composition root. Регистрация инфраструктуры инкапсулируется extension-методами проекта `LeadFlow.Infrastructure`, но их вызов и сборка приложения выполняются в `Program.cs`.
 
-## 7. Доменная модель
+### 6.1. Направления зависимостей
+
+```mermaid
+flowchart LR
+    Web[LeadFlow.Web] --> Application[LeadFlow.Application]
+    Web --> Infrastructure[LeadFlow.Infrastructure]
+    Web -. presentation types .-> Domain[LeadFlow.Domain]
+    Infrastructure --> Application
+    Infrastructure --> Domain
+    Application --> Domain
+```
+
+- `LeadFlow.Domain` не имеет ссылок на остальные проекты решения и инфраструктурные библиотеки;
+- `LeadFlow.Application` содержит прикладные сервисы, команды, query-модели, DTO и интерфейсы внешних зависимостей; из инфраструктурных пакетов допускаются только EF Core abstractions, необходимые для `IApplicationDbContext` и LINQ-запросов;
+- `LeadFlow.Infrastructure` реализует persistence-, Identity- и Telegram-контракты Application;
+- `LeadFlow.Web` содержит только HTTP/UI-слой и composition root;
+- `LeadFlow.Tests` может ссылаться на все проекты для unit- и integration-проверок.
+
+Циклические ссылки между проектами не допускаются. Ссылка `Web` на `Infrastructure` используется для композиции зависимостей, а не для обращения controllers к инфраструктурным типам.
+
+Controllers не используют `ApplicationDbContext`, `ApplicationUser`, `UserManager<ApplicationUser>` или `SignInManager<ApplicationUser>`. Для входа и выхода `AccountController` зависит от `IManagerAuthenticationService`, объявленного в Application. Реализация в Infrastructure адаптирует этот контракт к ASP.NET Core Identity. Для получения отображаемых данных менеджера Application использует отдельный read-контракт `IManagerDirectory`, также реализуемый Infrastructure.
+
+### 6.2. Организация Application
+
+Application-код группируется по прикладным сценариям, а не в общих корневых каталогах `Commands` и `DTO`. Существующие `LeadCreationService`, `LeadManagementService` и `LeadListQueryService` сохраняются и располагаются рядом со своими командами, результатами и интерфейсами. Такое размещение поддерживает связность сценариев и не создаёт общий каталог несвязанных типов.
+
+Контракты аутентификации и чтения сведений о менеджерах отделяются от реализаций Identity:
+
+- `IManagerAuthenticationService` выполняет вход и выход и возвращает нейтральный результат без типов ASP.NET Core Identity;
+- `IManagerDirectory` разрешает необходимые application-сценариям сведения о менеджерах, например email авторов истории, по их идентификаторам;
+- реализации этих контрактов находятся в Infrastructure и могут использовать `SignInManager<ApplicationUser>`, `UserManager<ApplicationUser>` или `ApplicationDbContext`;
+- возврат `ApplicationUser` за границу Infrastructure не допускается.
+
+## 7. Доменная и Identity-модели
 
 ### 7.1. Lead
 
@@ -155,9 +203,11 @@ LeadFlow.sln
 
 Создание заявки и первой записи истории со статусом `New` выполняется одним вызовом `SaveChanges` и одной транзакцией БД. Изменение статуса и добавление записи истории также сохраняются атомарно.
 
-### 7.5. ApplicationUser
+Domain хранит только скалярный `ChangedByUserId` и не содержит навигационного свойства на `ApplicationUser`. Связь с таблицей Identity настраивается в EF Core-конфигурации Infrastructure без зависимости Domain от Identity. Email автора, необходимый для карточки заявки, разрешается в Application через `IManagerDirectory`.
 
-Пользователь менеджера наследуется от `IdentityUser<Guid>`. В MVP:
+### 7.5. Identity-модель ApplicationUser
+
+`ApplicationUser` относится к `LeadFlow.Infrastructure/Identity` и не входит в проекты Domain, Application или Web, поскольку зависит от ASP.NET Core Identity. Пользователь менеджера наследуется от `IdentityUser<Guid>`. В MVP:
 
 - существует один предварительно созданный менеджер;
 - регистрации, восстановления пароля и UI управления пользователями нет;
@@ -166,7 +216,9 @@ LeadFlow.sln
 
 ## 8. Хранение данных
 
-Используется один `ApplicationDbContext`, включающий таблицы Identity, заявки и историю статусов.
+Используется один `ApplicationDbContext`, включающий таблицы Identity, заявки и историю статусов. Контекст и EF-конфигурации находятся в `LeadFlow.Infrastructure`; контекст реализует объявленный в `LeadFlow.Application` контракт `IApplicationDbContext`. Этот application-контракт предоставляет только наборы и операции, необходимые сценариям заявок, и не раскрывает `ApplicationUser` или Identity API.
+
+Application-сервисы продолжают формировать конкретные LINQ-запросы и использовать EF Core как unit of work через этот контракт. Введение `IApplicationDbContext` закрепляет направление зависимости между проектами и не является generic repository.
 
 Основные ограничения и индексы:
 
@@ -177,7 +229,7 @@ LeadFlow.sln
 - удаление заявки через пользовательский интерфейс отсутствует;
 - история удаляется каскадно только при техническом удалении родительской заявки вне MVP.
 
-Миграции EF Core хранятся в репозитории. Они применяются явной командой до запуска приложения. Автоматическое применение миграций при старте не используется, чтобы запуск приложения не менял схему базы неявно.
+Миграции EF Core хранятся в `LeadFlow.Infrastructure`. Startup-проектом для design-time команд остаётся `LeadFlow.Web`. Миграции применяются явной командой до запуска приложения. Автоматическое применение миграций при старте не используется, чтобы запуск приложения не менял схему базы неявно.
 
 Для локальной разработки `compose.yaml` поднимает PostgreSQL с persistent volume и healthcheck. Само MVC-приложение запускается через .NET CLI/IDE; контейнеризация приложения не обязательна для MVP.
 
@@ -265,6 +317,8 @@ Domain entities не передаются напрямую между controller
 ## 12. Аутентификация и авторизация
 
 Используется ASP.NET Core Identity с cookie authentication.
+
+`AccountController` зависит от `IManagerAuthenticationService` из Application и не использует Identity-типы. Реализация `IdentityManagerAuthenticationService` находится в Infrastructure и инкапсулирует `SignInManager<ApplicationUser>`. Контракт возвращает нейтральный результат успеха или неуспеха, поэтому детали Identity, lockout и cookie не пересекают границу Infrastructure. Проверка локального `returnUrl` и выбор HTTP redirect остаются ответственностью Web.
 
 - начальный менеджер создаётся идемпотентным initializer при запуске, если его ещё нет;
 - email и начальный пароль передаются через User Secrets или environment variables;
@@ -370,10 +424,11 @@ Telegram вызывается только после успешного сох�
 | Решение | Причина |
 |---|---|
 | Модульный монолит | Соответствует размеру MVP и остаётся понятным для портфолио |
-| Один web-проект | Не создаёт церемониальных границ при небольшом объёме кода |
+| Четыре проекта и один запускаемый процесс | Физически закрепляет границы слоёв без операционной сложности распределённой системы |
 | MVC + Razor Views | Лендинг и admin находятся в одном серверном приложении без отдельного frontend |
 | ASP.NET Core Identity | Даёт стандартное безопасное хранение пароля и cookie authentication |
-| EF Core напрямую в application services | Generic repository не добавляет пользы поверх EF Core в этом проекте |
+| Identity за application-контрактами | Не допускает зависимости controllers и Domain от `ApplicationUser`, `SignInManager` и других инфраструктурных типов |
+| EF Core через `IApplicationDbContext` в application services | Сохраняет выразительные LINQ-запросы и unit of work, одновременно инвертируя зависимость от Infrastructure |
 | PostgreSQL через Docker | Соответствует согласованному окружению и обеспечивает воспроизводимость |
 | Сохранение до Telegram-вызова | Сбой внешнего API не приводит к потере заявки |
 | Best-effort Telegram без outbox | Достаточно для MVP; outbox и retries добавили бы несоразмерную сложность |
@@ -393,6 +448,8 @@ Telegram вызывается только после успешного сох�
 - pagination и поиск — через расширение query model списка заявок.
 
 Эти возможности не реализуются до появления отдельных требований.
+
+Отдельный `Worker` не является частью текущей архитектуры. Он добавляется только вместе с отдельным требованием фоновой или гарантированной обработки, например при переходе Telegram-доставки на outbox. Простое разделение solution на проекты не требует второго процесса.
 
 ## 20. Критерии архитектурной готовности MVP
 
