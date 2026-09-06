@@ -62,7 +62,7 @@ docker compose down -v
 
 ### Секреты приложения
 
-Connection string не хранится в `appsettings*.json`. После запуска PostgreSQL задайте его через User Secrets:
+Connection string не хранится в `appsettings*.json`. Все User Secrets задаются через `LeadFlow.Web` — это единственный запускаемый проект. После запуска PostgreSQL задайте connection string:
 
 ```bash
 dotnet user-secrets set --project LeadFlow.Web/LeadFlow.Web.csproj \
@@ -70,7 +70,7 @@ dotnet user-secrets set --project LeadFlow.Web/LeadFlow.Web.csproj \
   "Host=localhost;Port=5432;Database=leadflow;Username=leadflow;Password=<пароль-из-.env>"
 ```
 
-В этом же хранилище задаются пароль начального менеджера и настройки Telegram. Их нельзя добавлять в репозиторий.
+В этом же хранилище задаются пароль начального менеджера и настройки Telegram. Их нельзя добавлять в репозиторий. Design-time factory EF из `LeadFlow.Infrastructure` читает это же хранилище только для выполнения команд миграций.
 
 Вместо User Secrets можно использовать переменные окружения: замените `:` в ключах на `__`, например `ConnectionStrings__DefaultConnection` и `InitialManager__Password`.
 
@@ -90,10 +90,12 @@ dotnet user-secrets set --project LeadFlow.Web/LeadFlow.Web.csproj "InitialManag
 После настройки connection string примените схему к локальной PostgreSQL:
 
 ```bash
-dotnet ef database update --project LeadFlow.Web/LeadFlow.Web.csproj
+dotnet ef database update \
+  --project LeadFlow.Infrastructure/LeadFlow.Infrastructure.csproj \
+  --startup-project LeadFlow.Web/LeadFlow.Web.csproj
 ```
 
-Команда использует ту же строку подключения из User Secrets или environment variables. Если она не задана, миграция завершится с диагностичным сообщением, не раскрывая пароль.
+`LeadFlow.Infrastructure` содержит `ApplicationDbContext` и миграции, а `LeadFlow.Web` остаётся startup-проектом и источником конфигурации. Команда использует ту же строку подключения из User Secrets или environment variables. Если она не задана, миграция завершится с диагностичным сообщением, не раскрывая пароль.
 
 ### Запуск приложения
 
