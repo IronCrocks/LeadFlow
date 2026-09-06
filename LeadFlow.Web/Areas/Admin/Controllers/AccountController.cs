@@ -1,14 +1,13 @@
 using LeadFlow.Areas.Admin.ViewModels;
-using LeadFlow.Infrastructure.Identity;
+using LeadFlow.Application.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LeadFlow.Areas.Admin.Controllers;
 
 [Area("Admin")]
 [Route("admin")]
-public sealed class AccountController(SignInManager<ApplicationUser> signInManager) : Controller
+public sealed class AccountController(IManagerAuthenticationService managerAuthenticationService) : Controller
 {
     [AllowAnonymous]
     [HttpGet("login")]
@@ -27,13 +26,7 @@ public sealed class AccountController(SignInManager<ApplicationUser> signInManag
             return View(model);
         }
 
-        var result = await signInManager.PasswordSignInAsync(
-            model.Email,
-            model.Password,
-            isPersistent: false,
-            lockoutOnFailure: true);
-
-        if (!result.Succeeded)
+        if (!await managerAuthenticationService.SignInAsync(model.Email, model.Password))
         {
             ModelState.AddModelError(string.Empty, "Неверный email или пароль.");
             return View(model);
@@ -52,7 +45,7 @@ public sealed class AccountController(SignInManager<ApplicationUser> signInManag
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
     {
-        await signInManager.SignOutAsync();
+        await managerAuthenticationService.SignOutAsync();
         return RedirectToAction(nameof(Login));
     }
 }

@@ -1,11 +1,11 @@
 using LeadFlow.Domain.Entities;
 using LeadFlow.Domain.Enums;
-using LeadFlow.Infrastructure.Persistence;
+using LeadFlow.Application.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace LeadFlow.Application.Leads;
 
-public sealed class LeadListQueryService(ApplicationDbContext dbContext) : ILeadListQueryService
+public sealed class LeadListQueryService(IApplicationDbContext dbContext) : ILeadListQueryService
 {
     public async Task<IReadOnlyList<LeadListItem>> GetAsync(
         LeadStatus? status,

@@ -1,15 +1,19 @@
 using LeadFlow.Domain.Entities;
-using LeadFlow.Infrastructure.Persistence;
+using LeadFlow.Application.Managers;
+using LeadFlow.Application.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace LeadFlow.Application.Leads;
 
-public sealed class LeadManagementService(ApplicationDbContext dbContext, TimeProvider timeProvider)
+public sealed class LeadManagementService(
+    IApplicationDbContext dbContext,
+    IManagerDirectory managerDirectory,
+    TimeProvider timeProvider)
     : ILeadManagementService
 {
     public async Task<LeadDetails?> GetDetailsAsync(Guid leadId, CancellationToken cancellationToken = default)
     {
-        return await dbContext.Leads
+        var details = await dbContext.Leads
             .AsNoTracking()
             .Where(lead => lead.Id == leadId)
             .Select(lead => new LeadDetails(
@@ -30,14 +34,35 @@ public sealed class LeadManagementService(ApplicationDbContext dbContext, TimePr
                         history.PreviousStatus,
                         history.NewStatus,
                         history.ChangedAtUtc,
-                        history.ChangedByUserId == null
-                            ? null
-                            : dbContext.Users
-                                .Where(user => user.Id == history.ChangedByUserId)
-                                .Select(user => user.Email)
-                                .FirstOrDefault()))
+                        history.ChangedByUserId,
+                        null))
                     .ToList()))
             .SingleOrDefaultAsync(cancellationToken);
+
+        if (details is null)
+        {
+            return null;
+        }
+
+        var managerIds = details.StatusHistory
+            .Where(history => history.ChangedByUserId is not null)
+            .Select(history => history.ChangedByUserId!.Value)
+            .Distinct()
+            .ToArray();
+        var managerEmails = await managerDirectory.GetEmailsAsync(managerIds, cancellationToken);
+
+        return details with
+        {
+            StatusHistory = details.StatusHistory
+                .Select(history => history with
+                {
+                    ChangedByEmail = history.ChangedByUserId is { } managerId &&
+                                     managerEmails.TryGetValue(managerId, out var email)
+                        ? email
+                        : null
+                })
+                .ToArray()
+        };
     }
 
     public async Task<bool> UpdateAsync(

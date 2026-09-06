@@ -80,6 +80,9 @@ public sealed class AdminLeadDetailsTests(PostgreSqlDatabaseFixture database) : 
         Assert.Equal(LeadStatus.New, history.PreviousStatus);
         Assert.Equal(manager.Id, history.ChangedByUserId);
         Assert.NotEqual(default, history.ChangedAtUtc);
+
+        var content = WebUtility.HtmlDecode(await client.GetStringAsync($"/admin/leads/{leadId}"));
+        Assert.Contains(AuthenticationWebApplicationFactory.ManagerEmail, content);
     }
 
     [Fact]

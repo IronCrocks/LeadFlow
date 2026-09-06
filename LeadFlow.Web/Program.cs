@@ -1,4 +1,7 @@
+using LeadFlow.Application.Authentication;
 using LeadFlow.Application.Leads;
+using LeadFlow.Application.Managers;
+using LeadFlow.Application.Persistence;
 using LeadFlow.Infrastructure.Identity;
 using LeadFlow.Infrastructure.Persistence;
 using LeadFlow.Infrastructure.Telegram;
@@ -10,9 +13,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.Configure<LeadFlowOptions>(builder.Configuration.GetSection(LeadFlowOptions.SectionName));
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddScoped<IApplicationDbContext>(serviceProvider =>
+    serviceProvider.GetRequiredService<ApplicationDbContext>());
 builder.Services.AddScoped<ILeadCreationService, LeadCreationService>();
 builder.Services.AddScoped<ILeadListQueryService, LeadListQueryService>();
 builder.Services.AddScoped<ILeadManagementService, LeadManagementService>();
+builder.Services.AddScoped<IManagerAuthenticationService, IdentityManagerAuthenticationService>();
+builder.Services.AddScoped<IManagerDirectory, IdentityManagerDirectory>();
 builder.Services.AddLeadNotifications(builder.Configuration);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");

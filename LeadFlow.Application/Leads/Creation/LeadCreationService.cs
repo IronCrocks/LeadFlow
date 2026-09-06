@@ -1,13 +1,13 @@
 using LeadFlow.Domain.Entities;
 using LeadFlow.Domain.Enums;
 using LeadFlow.Application.Notifications;
-using LeadFlow.Infrastructure.Persistence;
+using LeadFlow.Application.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace LeadFlow.Application.Leads;
 
 public sealed class LeadCreationService(
-    ApplicationDbContext dbContext,
+    IApplicationDbContext dbContext,
     TimeProvider timeProvider,
     ILeadNotificationSender notificationSender)
     : ILeadCreationService
@@ -47,7 +47,7 @@ public sealed class LeadCreationService(
         }
         catch (DbUpdateException)
         {
-            dbContext.ChangeTracker.Clear();
+            dbContext.ClearChangeTracker();
 
             if (!await dbContext.Leads.AnyAsync(item => item.SubmissionId == command.SubmissionId, cancellationToken))
             {

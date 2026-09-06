@@ -6,4 +6,5 @@ public sealed record LeadStatusHistoryItem(
     LeadStatus? PreviousStatus,
     LeadStatus NewStatus,
     DateTimeOffset ChangedAtUtc,
+    Guid? ChangedByUserId,
     string? ChangedByEmail);
