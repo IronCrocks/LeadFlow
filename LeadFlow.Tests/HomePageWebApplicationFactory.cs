@@ -6,7 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LeadFlow.Tests;
 
-public sealed class HomePageWebApplicationFactory : WebApplicationFactory<global::Program>
+public sealed class HomePageWebApplicationFactory(string connectionString)
+    : WebApplicationFactory<global::Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -14,7 +15,7 @@ public sealed class HomePageWebApplicationFactory : WebApplicationFactory<global
         builder.ConfigureServices(services =>
         {
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql("Host=localhost;Database=leadflow-test;Username=test;Password=test"));
+                options.UseNpgsql(connectionString));
         });
     }
 }
