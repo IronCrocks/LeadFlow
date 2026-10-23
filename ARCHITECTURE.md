@@ -98,7 +98,8 @@ LeadFlow.sln
 │   ├── Notifications/
 │   └── Persistence/
 ├── LeadFlow.Domain/
-│   └── Leads/
+│   ├── Entities/
+│   └── Enums/
 ├── LeadFlow.Infrastructure/
 │   ├── Identity/
 │   ├── Persistence/
