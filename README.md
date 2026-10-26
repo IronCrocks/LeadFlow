@@ -12,17 +12,41 @@ LeadFlow — MVP для приёма заявок с лендинга и их о
 
 ## Локальный запуск
 
-Требования: .NET SDK 10, Docker Desktop с Docker Compose и доступная команда `dotnet ef`.
+Все команды выполняются из корня репозитория. На Windows их можно вводить во встроенном терминале Visual Studio.
+
+Требования:
+
+- .NET SDK 10;
+- Windows 10/11: Visual Studio и запущенный Docker Desktop в режиме Linux containers;
+- Linux/macOS: запущенный Docker и Docker Compose;
+- доступная команда `dotnet ef`.
+
+Проверьте установленные инструменты:
+
+```text
+dotnet --version
+docker compose version
+```
 
 Если Entity Framework CLI ещё не установлена, установите её один раз:
 
-```bash
-dotnet tool install --global dotnet-ef
+```text
+dotnet tool install --global dotnet-ef --version "10.*"
 ```
+
+Если после установки терминал Visual Studio не находит `dotnet ef`, закройте и заново откройте терминал.
 
 ### PostgreSQL
 
 1. Создайте локальный файл переменных:
+
+   Windows, терминал Visual Studio:
+
+   ```text
+   copy .env.example .env
+   ```
+
+   Linux/macOS:
 
    ```bash
    cp .env.example .env
@@ -32,27 +56,29 @@ dotnet tool install --global dotnet-ef
 
 3. Запустите базу данных:
 
-   ```bash
+   ```text
    docker compose up -d
    ```
 
 4. Убедитесь, что контейнер готов принимать подключения:
 
-   ```bash
+   ```text
    docker compose ps
    ```
 
    У сервиса `postgres` должен быть статус `healthy`.
 
+Если порт `5432` уже занят, измените `POSTGRES_PORT` в `.env`, а затем укажите тот же порт в строке подключения приложения.
+
 Чтобы остановить контейнер без удаления данных, выполните:
 
-```bash
+```text
 docker compose down
 ```
 
 Команда ниже удаляет контейнер **и все локальные данные PostgreSQL**. Используйте её только если данные больше не нужны:
 
-```bash
+```text
 docker compose down -v
 ```
 
@@ -72,11 +98,11 @@ docker compose down -v
 
 Connection string не хранится в `appsettings*.json`. Все User Secrets задаются через `LeadFlow.Web` — это единственный запускаемый проект. После запуска PostgreSQL задайте connection string:
 
-```bash
-dotnet user-secrets set --project LeadFlow.Web/LeadFlow.Web.csproj \
-  "ConnectionStrings:DefaultConnection" \
-  "Host=localhost;Port=5432;Database=leadflow;Username=leadflow;Password=<пароль-из-.env>"
+```text
+dotnet user-secrets set --project LeadFlow.Web/LeadFlow.Web.csproj "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=leadflow;Username=leadflow;Password=<пароль-из-.env>"
 ```
+
+Если вы изменили `POSTGRES_DB`, `POSTGRES_USER` или `POSTGRES_PORT` в `.env`, используйте те же значения в строке подключения.
 
 В этом же хранилище задаются пароль начального менеджера и настройки Telegram. Их нельзя добавлять в репозиторий. Design-time factory EF из `LeadFlow.Infrastructure` читает это же хранилище только для выполнения команд миграций.
 
@@ -86,7 +112,7 @@ dotnet user-secrets set --project LeadFlow.Web/LeadFlow.Web.csproj \
 
 Чтобы включить вход в административную часть, задайте email и пароль менеджера через User Secrets:
 
-```bash
+```text
 dotnet user-secrets set --project LeadFlow.Web/LeadFlow.Web.csproj "InitialManager:Email" "manager@example.com"
 dotnet user-secrets set --project LeadFlow.Web/LeadFlow.Web.csproj "InitialManager:Password" "<надёжный-пароль-не-короче-12-символов>"
 ```
@@ -99,27 +125,31 @@ dotnet user-secrets set --project LeadFlow.Web/LeadFlow.Web.csproj "InitialManag
 
 После настройки connection string примените схему к локальной PostgreSQL:
 
-```bash
-dotnet ef database update \
-  --project LeadFlow.Infrastructure/LeadFlow.Infrastructure.csproj \
-  --startup-project LeadFlow.Web/LeadFlow.Web.csproj
+```text
+dotnet ef database update --project LeadFlow.Infrastructure/LeadFlow.Infrastructure.csproj --startup-project LeadFlow.Web/LeadFlow.Web.csproj
 ```
 
 `LeadFlow.Infrastructure` содержит `ApplicationDbContext` и миграции, а `LeadFlow.Web` остаётся startup-проектом и источником конфигурации. Команда использует ту же строку подключения из User Secrets или environment variables. Если она не задана, миграция завершится с диагностичным сообщением, не раскрывая пароль.
 
 ### Запуск приложения
 
-```bash
+```text
 dotnet run --project LeadFlow.Web/LeadFlow.Web.csproj
 ```
 
 После запуска откройте адрес, выведенный в консоль (обычно `https://localhost:xxxx`). Лендинг доступен по `/`, а вход менеджера — по `/admin/login`. При первом запуске после задания `InitialManager` создаётся пользователь менеджера.
 
+Если Windows показывает предупреждение о недоверенном локальном HTTPS-сертификате, остановите приложение, выполните в терминале Visual Studio команду ниже, подтвердите доверие к сертификату и запустите приложение снова:
+
+```text
+dotnet dev-certs https --trust
+```
+
 ### Telegram-уведомления
 
 Чтобы включить уведомления о новых заявках, задайте оба значения через User Secrets:
 
-```bash
+```text
 dotnet user-secrets set --project LeadFlow.Web/LeadFlow.Web.csproj "Telegram:BotToken" "<токен-бота>"
 dotnet user-secrets set --project LeadFlow.Web/LeadFlow.Web.csproj "Telegram:ChatId" "<идентификатор-чата>"
 ```
@@ -139,7 +169,7 @@ dotnet user-secrets set --project LeadFlow.Web/LeadFlow.Web.csproj "Telegram:Cha
 
 Для возврата к режиму без уведомлений удалите оба Telegram-значения из User Secrets:
 
-```bash
+```text
 dotnet user-secrets remove --project LeadFlow.Web/LeadFlow.Web.csproj "Telegram:BotToken"
 dotnet user-secrets remove --project LeadFlow.Web/LeadFlow.Web.csproj "Telegram:ChatId"
 ```
@@ -148,9 +178,9 @@ dotnet user-secrets remove --project LeadFlow.Web/LeadFlow.Web.csproj "Telegram:
 
 ### Автоматические проверки
 
-```bash
+```text
 dotnet build LeadFlow.sln --warnaserror
 dotnet test LeadFlow.sln
 ```
 
-Автоматические тесты используют отдельную PostgreSQL в Testcontainers и не вызывают реальный Telegram Bot API. Для их запуска Docker Desktop должен быть включён.
+Автоматические тесты используют отдельную PostgreSQL в Testcontainers и не вызывают реальный Telegram Bot API. Для их запуска Docker должен быть запущен.
