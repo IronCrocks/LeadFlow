@@ -14,12 +14,11 @@ LeadFlow — MVP для приёма заявок с лендинга и их о
 
 Все команды выполняются из корня репозитория. На Windows их можно вводить во встроенном терминале Visual Studio.
 
-Требования:
+### Требования
 
 - .NET SDK 10;
-- Windows 10/11: Visual Studio и запущенный Docker Desktop в режиме Linux containers;
-- Linux/macOS: запущенный Docker и Docker Compose;
-- доступная команда `dotnet ef`.
+- Windows 10/11: Visual Studio и Docker Desktop в режиме Linux containers;
+- Linux/macOS: Docker с поддержкой Docker Compose.
 
 Проверьте установленные инструменты:
 
@@ -28,159 +27,190 @@ dotnet --version
 docker compose version
 ```
 
-Если Entity Framework CLI ещё не установлена, установите её один раз:
+Установите локально зафиксированную для проекта версию Entity Framework CLI:
 
 ```text
-dotnet tool install --global dotnet-ef --version "10.*"
+dotnet tool restore
 ```
 
-Если после установки терминал Visual Studio не находит `dotnet ef`, закройте и заново откройте терминал.
+### Первый запуск
 
-### PostgreSQL
+#### 1. Создайте файл `.env`
 
-1. Создайте локальный файл переменных:
-
-   Windows, терминал Visual Studio:
-
-   ```text
-   copy .env.example .env
-   ```
-
-   Linux/macOS:
-
-   ```bash
-   cp .env.example .env
-   ```
-
-2. В `.env` укажите уникальный пароль для локальной разработки в `POSTGRES_PASSWORD`. Значение в шаблоне намеренно пустое: `docker compose up` остановится, пока пароль не будет задан.
-
-3. Запустите базу данных:
-
-   ```text
-   docker compose up -d
-   ```
-
-4. Убедитесь, что контейнер готов принимать подключения:
-
-   ```text
-   docker compose ps
-   ```
-
-   У сервиса `postgres` должен быть статус `healthy`.
-
-Если порт `5432` уже занят, измените `POSTGRES_PORT` в `.env`, а затем укажите тот же порт в строке подключения приложения.
-
-Чтобы остановить контейнер без удаления данных, выполните:
+Windows, терминал Visual Studio:
 
 ```text
-docker compose down
+copy .env.example .env
 ```
 
-Команда ниже удаляет контейнер **и все локальные данные PostgreSQL**. Используйте её только если данные больше не нужны:
+Linux/macOS:
+
+```bash
+cp .env.example .env
+```
+
+Откройте созданный `.env` и задайте непустой уникальный пароль:
+
+```dotenv
+POSTGRES_PASSWORD=<локальный-пароль-базы-данных>
+```
+
+Не добавляйте `.env` в Git. Если пароль останется пустым, PostgreSQL не запустится.
+
+#### 2. Запустите PostgreSQL
+
+Перед выполнением следующей команды запустите Docker Desktop. На Linux убедитесь, что запущен Docker Engine.
 
 ```text
-docker compose down -v
+docker compose up -d
 ```
 
-### Повторная инициализация локальной БД
+Дождитесь готовности контейнера:
 
-Переменные `POSTGRES_DB`, `POSTGRES_USER` и `POSTGRES_PASSWORD` применяются PostgreSQL только при первом запуске с пустым volume. Изменение `.env` после инициализации не изменит существующие учётные данные базы.
+```text
+docker compose ps
+```
 
-Если база была впервые запущена с временными или неверными значениями, перед началом реальной разработки её нужно пересоздать:
+У сервиса `postgres` должен появиться статус `healthy`.
 
-1. Остановить Compose и удалить локальный volume командой `docker compose down -v`.
-2. Создать `.env` из `.env.example` и задать нужный локальный пароль.
-3. Запустить `docker compose up -d`.
+#### 3. Настройте подключение приложения к БД
 
-Первый шаг необратимо удаляет все данные локальной базы. Его следует выполнять только когда эти данные больше не нужны. Для текущей проверки Docker-окружения база была инициализирована временным паролем, поэтому этот сценарий потребуется выполнить перед использованием БД для разработки.
-
-### Секреты приложения
-
-Connection string не хранится в `appsettings*.json`. Все User Secrets задаются через `LeadFlow.Web` — это единственный запускаемый проект. После запуска PostgreSQL задайте connection string:
+В следующей команде замените `<пароль-из-.env>` на значение `POSTGRES_PASSWORD` из файла `.env`:
 
 ```text
 dotnet user-secrets set --project LeadFlow.Web/LeadFlow.Web.csproj "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=leadflow;Username=leadflow;Password=<пароль-из-.env>"
 ```
 
-Если вы изменили `POSTGRES_DB`, `POSTGRES_USER` или `POSTGRES_PORT` в `.env`, используйте те же значения в строке подключения.
+#### 4. Создайте учётные данные начального менеджера
 
-В этом же хранилище задаются пароль начального менеджера и настройки Telegram. Их нельзя добавлять в репозиторий. Design-time factory EF из `LeadFlow.Infrastructure` читает это же хранилище только для выполнения команд миграций.
-
-Вместо User Secrets можно использовать переменные окружения: замените `:` в ключах на `__`, например `ConnectionStrings__DefaultConnection` и `InitialManager__Password`.
-
-### Начальный менеджер
-
-Чтобы включить вход в административную часть, задайте email и пароль менеджера через User Secrets:
+Замените пример email и значение в угловых скобках на собственные данные:
 
 ```text
 dotnet user-secrets set --project LeadFlow.Web/LeadFlow.Web.csproj "InitialManager:Email" "manager@example.com"
-dotnet user-secrets set --project LeadFlow.Web/LeadFlow.Web.csproj "InitialManager:Password" "<надёжный-пароль-не-короче-12-символов>"
+dotnet user-secrets set --project LeadFlow.Web/LeadFlow.Web.csproj "InitialManager:Password" "<пароль-менеджера>"
 ```
 
-Пароль должен содержать не менее 12 символов, строчную и заглавную буквы, цифру и специальный символ. Например, формат `ManagerPass1!` соответствует этим правилам; для реального запуска используйте свой уникальный пароль.
+Пароль менеджера должен содержать не менее 12 символов, строчную и заглавную буквы, цифру и специальный символ. Формат `ManagerPass1!` соответствует требованиям, но для запуска используйте свой уникальный пароль.
 
-При следующем запуске приложения менеджер будет создан в БД, если пользователя с таким email ещё нет. Не добавляйте эти значения в `appsettings*.json` или `.env.example`.
-
-### Применение миграций
-
-После настройки connection string примените схему к локальной PostgreSQL:
+#### 5. Примените миграции
 
 ```text
 dotnet ef database update --project LeadFlow.Infrastructure/LeadFlow.Infrastructure.csproj --startup-project LeadFlow.Web/LeadFlow.Web.csproj
 ```
 
-`LeadFlow.Infrastructure` содержит `ApplicationDbContext` и миграции, а `LeadFlow.Web` остаётся startup-проектом и источником конфигурации. Команда использует ту же строку подключения из User Secrets или environment variables. Если она не задана, миграция завершится с диагностичным сообщением, не раскрывая пароль.
+Команда создаст в PostgreSQL схему приложения и таблицы ASP.NET Core Identity.
 
-### Запуск приложения
+#### 6. При необходимости настройте Telegram
 
-```text
-dotnet run --project LeadFlow.Web/LeadFlow.Web.csproj
-```
-
-После запуска откройте адрес, выведенный в консоль (обычно `https://localhost:xxxx`). Лендинг доступен по `/`, а вход менеджера — по `/admin/login`. При первом запуске после задания `InitialManager` создаётся пользователь менеджера.
-
-Если Windows показывает предупреждение о недоверенном локальном HTTPS-сертификате, остановите приложение, выполните в терминале Visual Studio команду ниже, подтвердите доверие к сертификату и запустите приложение снова:
-
-```text
-dotnet dev-certs https --trust
-```
-
-### Telegram-уведомления
-
-Чтобы включить уведомления о новых заявках, задайте оба значения через User Secrets:
+Чтобы получать уведомления о новых заявках, задайте оба секрета:
 
 ```text
 dotnet user-secrets set --project LeadFlow.Web/LeadFlow.Web.csproj "Telegram:BotToken" "<токен-бота>"
 dotnet user-secrets set --project LeadFlow.Web/LeadFlow.Web.csproj "Telegram:ChatId" "<идентификатор-чата>"
 ```
 
-Если отсутствует хотя бы одно из значений, приложение работает без отправки уведомлений. Это не мешает запуску, созданию заявок и работе менеджера.
+Не передавайте реальные `BotToken` и `ChatId` в чат и не сохраняйте их в файлах репозитория. Без этих значений приложение также запускается и работает, но не отправляет уведомления.
 
-### Ручная Telegram smoke-проверка
+#### 7. Подготовьте локальный HTTPS-сертификат
 
-Эта проверка выполняется только владельцем реальных секретов. Не передавайте `BotToken` и `ChatId` в чат, код или файлы репозитория.
+На Windows подтвердите системный запрос на доверие сертификату после выполнения команды:
 
-1. Убедитесь, что PostgreSQL запущен, миграции применены, а `ConnectionStrings:DefaultConnection`, `InitialManager:Email` и `InitialManager:Password` заданы.
-2. Задайте `Telegram:BotToken` и `Telegram:ChatId` через User Secrets командами выше.
-3. Запустите приложение и отправьте на `/` новую заявку с именем, телефоном, услугой и непустым комментарием.
-4. Убедитесь, что браузер перенаправлен на `/leads/success`, а в Telegram пришло одно plaintext-сообщение с этими полями.
-5. Войдите через `/admin/login`, найдите заявку и проверьте её статус `Новая`, данные клиента и первую запись истории статусов.
-6. Измените статус на `В работе`, сохраните карточку и убедитесь, что появилась вторая запись истории.
+```text
+dotnet dev-certs https --trust
+```
 
-Для возврата к режиму без уведомлений удалите оба Telegram-значения из User Secrets:
+#### 8. Запустите приложение
+
+```text
+dotnet run --project LeadFlow.Web/LeadFlow.Web.csproj --launch-profile https
+```
+
+Не закрывайте терминал, пока работает приложение. При первом запуске будет создан менеджер с email и паролем из шага 4.
+
+## Что открыть после запуска
+
+Базовый адрес приложения: `https://localhost:7120`.
+
+| Адрес | Назначение |
+|---|---|
+| `https://localhost:7120/` | Лендинг, список услуг и публичная форма заявки |
+| `https://localhost:7120/leads/success` | Страница успешной отправки заявки |
+| `https://localhost:7120/admin/login` | Вход менеджера с данными из шага 4 |
+| `https://localhost:7120/admin` | Переход в административный раздел |
+| `https://localhost:7120/admin/leads` | Список заявок, фильтрация и сортировка |
+| `https://localhost:7120/admin/leads/{id}` | Карточка конкретной заявки, изменение статуса и внутреннего комментария |
+
+Краткая проверка работающего приложения:
+
+1. Откройте `/` и отправьте заявку.
+2. Убедитесь, что открылась страница `/leads/success`.
+3. Если настроен Telegram, убедитесь, что бот прислал уведомление.
+4. Откройте `/admin/login` и войдите с данными менеджера.
+5. Найдите созданную заявку в `/admin/leads` и откройте её карточку.
+6. Измените статус на `В работе`, сохраните карточку и проверьте появление новой записи в истории статусов.
+
+## Эксплуатация и устранение проблем
+
+### Остановка приложения и PostgreSQL
+
+Остановите приложение сочетанием `Ctrl+C` в терминале. Контейнер PostgreSQL можно остановить без удаления данных:
+
+```text
+docker compose down
+```
+
+При следующем запуске достаточно снова выполнить `docker compose up -d`, а затем команду запуска приложения. Повторно применять миграции можно безопасно: EF Core выполнит только ещё не применённые миграции.
+
+### Повторная инициализация PostgreSQL
+
+Переменные `POSTGRES_DB`, `POSTGRES_USER` и `POSTGRES_PASSWORD` применяются только при первом создании volume PostgreSQL. Изменение этих значений в `.env` не меняет учётные данные уже созданной базы.
+
+Чтобы создать полностью новую локальную БД:
+
+```text
+docker compose down -v
+docker compose up -d
+```
+
+Команда `docker compose down -v` необратимо удаляет все локальные данные PostgreSQL. После пересоздания проверьте строку подключения и снова примените миграции.
+
+### Порт PostgreSQL уже занят
+
+Измените `POSTGRES_PORT` в `.env`, например на `5433`, и укажите тот же порт в `ConnectionStrings:DefaultConnection`:
+
+```text
+Host=localhost;Port=5433;Database=leadflow;Username=leadflow;Password=<пароль-из-.env>
+```
+
+### Проблемы с HTTPS-сертификатом
+
+Повторно создайте и зарегистрируйте локальный сертификат:
+
+```text
+dotnet dev-certs https --clean
+dotnet dev-certs https --trust
+```
+
+После этого перезапустите приложение и браузер.
+
+### Отключение Telegram-уведомлений
 
 ```text
 dotnet user-secrets remove --project LeadFlow.Web/LeadFlow.Web.csproj "Telegram:BotToken"
 dotnet user-secrets remove --project LeadFlow.Web/LeadFlow.Web.csproj "Telegram:ChatId"
 ```
 
-Ошибка Telegram не должна отменить сохранение заявки: её нужно проверить по логам без вывода токена и без полного текста заявки.
+Ошибка Telegram не отменяет сохранение заявки. Причину ошибки следует искать в логах приложения, не публикуя токен и полное содержимое заявки.
+
+### Альтернативная передача конфигурации
+
+Вместо User Secrets можно использовать переменные окружения. В именах ключей замените `:` на `__`, например `ConnectionStrings__DefaultConnection` и `InitialManager__Password`.
 
 ### Автоматические проверки
+
+Для тестов Docker должен быть запущен: Testcontainers создаёт отдельный контейнер PostgreSQL и не обращается к реальному Telegram Bot API.
 
 ```text
 dotnet build LeadFlow.sln --warnaserror
 dotnet test LeadFlow.sln
 ```
-
-Автоматические тесты используют отдельную PostgreSQL в Testcontainers и не вызывают реальный Telegram Bot API. Для их запуска Docker должен быть запущен.
