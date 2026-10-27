@@ -43,9 +43,13 @@ LeadFlow — MVP для приёма заявок с лендинга и их о
 
 ### Требования
 
-- .NET SDK 10;
-- Windows 10/11: Visual Studio и Docker Desktop в режиме Linux containers;
-- Linux/macOS: Docker с поддержкой Docker Compose.
+- .NET SDK 10
+
+- Windows 10/11: Visual Studio и Docker Desktop в режиме Linux containers
+
+	**или**
+
+- Linux/macOS: Docker с поддержкой Docker Compose
 
 Проверьте установленные инструменты:
 
