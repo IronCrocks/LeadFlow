@@ -138,7 +138,7 @@ dotnet user-secrets set --project LeadFlow.Web/LeadFlow.Web.csproj "Telegram:Bot
 dotnet user-secrets set --project LeadFlow.Web/LeadFlow.Web.csproj "Telegram:ChatId" "<идентификатор-чата>"
 ```
 
-Не передавайте реальные `BotToken` и `ChatId` в чат и не сохраняйте их в файлах репозитория.
+Не сохраняйте реальные `BotToken` и `ChatId` в репозитории и не публикуйте их в открытом виде.
 
 Без этих значений приложение также запускается и работает, но не отправляет Telegram-уведомления.
 
