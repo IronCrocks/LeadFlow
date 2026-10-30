@@ -19,6 +19,14 @@ public sealed class HomePageTests(PostgreSqlDatabaseFixture database) : IDisposa
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var content = await response.Content.ReadAsStringAsync();
         Assert.Contains("LeadFlow", content);
+        Assert.Contains("Разрабатываем ПО", content);
+        Assert.Contains("id=\"services\"", content);
+        Assert.Contains("id=\"process\"", content);
+        Assert.Contains("id=\"contact\"", content);
+        Assert.Contains("name=\"Lead.SubmissionId\"", content);
+        Assert.Contains("name=\"Lead.Service\"", content);
+        Assert.DoesNotContain("50+ компаний", content);
+        Assert.DoesNotContain("hello@leadflow.example", content);
     }
 
     public void Dispose()

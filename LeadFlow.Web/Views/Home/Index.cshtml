@@ -1,60 +1,78 @@
 @model LandingPageViewModel
 @{
-    ViewData["Title"] = "LeadFlow";
+  Layout = "_LandingLayout";
+  ViewData["Title"] = "Программные решения для бизнеса";
 }
-
-<section class="hero">
-    <h1>LeadFlow</h1>
-    <p>Помогаем небольшим компаниям не терять обращения клиентов.</p>
-    <a class="button-link" href="#lead-form">Оставить заявку</a>
-</section>
-
-<section class="services" aria-labelledby="services-title">
-    <h2 id="services-title">Наши услуги</h2>
-    <ul>
-        @foreach (var service in Model.Services)
-        {
-            <li>@service</li>
-        }
-    </ul>
-</section>
-
-<section id="lead-form" class="lead-form" aria-labelledby="lead-form-title">
-    <h2 id="lead-form-title">Расскажите о вашей задаче</h2>
-    <form asp-controller="Leads" asp-action="Create" method="post">
-        <input asp-for="Lead.SubmissionId" type="hidden" />
-        <div asp-validation-summary="All" class="validation-summary"></div>
-        <div class="form-field">
-            <label asp-for="Lead.Name"></label>
-            <input asp-for="Lead.Name" autocomplete="name" />
-            <span asp-validation-for="Lead.Name" class="validation-message"></span>
+<div class="page-shell">
+  <section class="hero" aria-labelledby="hero-title">
+    <header class="site-header" id="top">
+  <div class="container header-inner">
+    <a class="brand" href="#top" aria-label="LeadFlow — на главную"><img src="~/images/landing/leadflow-lockup.svg" alt="LeadFlow" width="150" height="38" /></a>
+    <nav class="desktop-nav" aria-label="Основная навигация">
+      <a href="#services">Услуги</a><a href="#process">Процесс</a><a href="#about">О нас</a><a href="#contact">Контакты</a>
+    </nav>
+    <a class="btn btn-primary header-cta" href="#contact">Обсудить проект <span aria-hidden="true">↗</span></a>
+    <button class="menu-toggle" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="mobile-nav"><span></span><span></span><span></span></button>
+  </div>
+  <nav id="mobile-nav" class="mobile-nav" aria-label="Мобильная навигация" hidden>
+    <a href="#services">Услуги</a><a href="#process">Процесс</a><a href="#about">О нас</a><a href="#contact">Контакты</a>
+  </nav>
+</header>
+    <div class="hero-stars" aria-hidden="true"></div>
+    <div class="container hero-layout">
+      <div class="hero-copy">
+        <span class="eyebrow">ПРОГРАММНЫЕ РЕШЕНИЯ ДЛЯ РОСТА БИЗНЕСА</span>
+        <h1 id="hero-title">Разрабатываем ПО<br />под задачи <span>вашего<br class="desktop-only" /> бизнеса</span></h1>
+        <p class="hero-description">Создаём индивидуальное программное обеспечение, веб-сервисы, автоматизируем процессы и интегрируем системы. Помогаем бизнесу работать эффективнее и расти быстрее.</p>
+        <div class="hero-actions"><a class="btn btn-primary btn-large" href="#contact">Обсудить проект <span aria-hidden="true">↗</span></a><a class="btn btn-outline btn-large" href="#services">Наши услуги <span aria-hidden="true">▦</span></a></div>
+        <div class="social-proof social-proof-directions" aria-label="Основные направления"><span>Веб-приложения</span><span>Автоматизация</span><span>Интеграции</span></div>
+      </div>
+      <div class="hero-visual" aria-hidden="true"><img src="~/images/landing/hero-laptop.webp" alt="" width="1448" height="1086" fetchpriority="high" /></div>
+    </div>
+    <div class="hero-bottom-glow" aria-hidden="true"></div>
+  </section>
+  <main>
+    <section class="section services-section" id="services" aria-labelledby="services-title">
+      <div class="container">
+        <div class="section-heading section-heading-inline"><div><span class="eyebrow">НАШИ УСЛУГИ</span><h2 id="services-title">Решения для разных задач бизнеса</h2></div><a class="section-jump" href="#contact">Обсудить задачу <span aria-hidden="true">↗</span></a></div>
+        <div class="services-list">
+          <article class="service-row"><span class="service-number">01</span><div class="service-info"><h3>Веб-приложения</h3><p>Современные и масштабируемые веб-сервисы под ваши задачи. От корпоративных систем до клиентских платформ.</p></div><a class="round-arrow" href="#contact" aria-label="Обсудить веб-приложение">↗</a><div class="service-art"><img src="~/images/landing/service-web.png" alt="Визуализация интерфейсов веб-приложения" loading="lazy" /></div></article>
+          <article class="service-row"><span class="service-number">02</span><div class="service-info"><h3>Автоматизация</h3><p>Оптимизируем бизнес-процессы, сокращаем рутинные задачи и помогаем команде сосредоточиться на главном.</p></div><a class="round-arrow" href="#contact" aria-label="Обсудить автоматизацию">↗</a><div class="service-art"><img src="~/images/landing/service-automation.png" alt="Визуализация автоматизации процессов" loading="lazy" /></div></article>
+          <article class="service-row"><span class="service-number">03</span><div class="service-info"><h3>Интеграции</h3><p>Объединяем программы и сервисы в единую экосистему: CRM, ERP, платёжные системы и внешние API.</p></div><a class="round-arrow" href="#contact" aria-label="Обсудить интеграцию">↗</a><div class="service-art"><img src="~/images/landing/service-integrations.png" alt="Визуализация интеграции нескольких систем" loading="lazy" /></div></article>
         </div>
-        <div class="form-field">
-            <label asp-for="Lead.Phone"></label>
-            <input asp-for="Lead.Phone" autocomplete="tel" />
-            <span asp-validation-for="Lead.Phone" class="validation-message"></span>
-        </div>
-        <div class="form-field">
-            <label asp-for="Lead.Email"></label>
-            <input asp-for="Lead.Email" autocomplete="email" />
-            <span asp-validation-for="Lead.Email" class="validation-message"></span>
-        </div>
-        <div class="form-field">
-            <label asp-for="Lead.Service"></label>
-            <select asp-for="Lead.Service">
-                <option value="">Выберите услугу</option>
-                @foreach (var service in Model.Services)
-                {
-                    <option value="@service">@service</option>
-                }
-            </select>
-            <span asp-validation-for="Lead.Service" class="validation-message"></span>
-        </div>
-        <div class="form-field">
-            <label asp-for="Lead.CustomerComment"></label>
-            <textarea asp-for="Lead.CustomerComment" rows="5"></textarea>
-            <span asp-validation-for="Lead.CustomerComment" class="validation-message"></span>
-        </div>
-        <button type="submit">Отправить заявку</button>
-    </form>
-</section>
+      </div>
+    </section>
+    <section class="section cases-section" id="cases" aria-labelledby="cases-title">
+      <div class="container"><div class="section-heading cases-heading"><div><span class="eyebrow">ТИПОВЫЕ РЕШЕНИЯ</span><h2 id="cases-title">Примеры решений</h2></div><p>Практичные сценарии. Понятные интерфейсы.<br />Надёжные технологии.</p></div>
+        <div class="cases-grid"><article class="case-card"><div class="case-image"><img src="~/images/landing/case-analytics.svg" alt="Демонстрационная аналитическая панель" loading="lazy" /></div><div class="case-bottom"><div><h3>Веб-платформа для управления процессами</h3><p>Внутренний сервис для работы с задачами, аналитикой и пользовательскими данными.</p></div><a class="round-arrow" href="#contact" aria-label="Обсудить похожий проект">↗</a></div></article>
+          <article class="case-card"><div class="case-image"><img src="~/images/landing/case-integrations.svg" alt="Демонстрационная система интеграции сервисов" loading="lazy" /></div><div class="case-bottom"><div><h3>Интеграция с внешними сервисами</h3><p>Объединение внутренней системы с CRM, платёжными сервисами и сторонними API.</p></div><a class="round-arrow" href="#contact" aria-label="Обсудить похожую интеграцию">↗</a></div></article></div>
+      </div>
+    </section>
+    <section class="section process-section" id="process" aria-labelledby="process-title">
+      <div class="container"><span class="eyebrow">КАК МЫ РАБОТАЕМ</span><h2 id="process-title">Простой и прозрачный процесс</h2>
+        <div class="process-grid"><div class="process-step"><span>01</span><div><h3>Обсуждение</h3><p>Изучаем задачу, уточняем требования и предлагаем оптимальное решение.</p></div></div><div class="process-step"><span>02</span><div><h3>Разработка</h3><p>Проектируем архитектуру, реализуем функциональность и регулярно показываем результат.</p></div></div><div class="process-step"><span>03</span><div><h3>Запуск</h3><p>Тестируем, помогаем с внедрением и остаёмся на связи для дальнейшего развития.</p></div></div></div>
+      </div>
+    </section>
+    <section class="section about-section" id="about" aria-labelledby="about-title"><div class="container about-inner"><div><span class="eyebrow">О НАС</span><h2 id="about-title">Надёжный партнёр<br />в разработке</h2></div><p>Мы разрабатываем программное обеспечение, которое помогает бизнесу решать реальные задачи. Ценим понятную коммуникацию, честные сроки и фокус на результате. Подбираем технологии под задачу и предлагаем решения, которые действительно приносят пользу.</p></div></section>
+    <section class="contact-section" id="contact" aria-labelledby="contact-title">
+      <div class="container"><div class="contact-panel"><div class="contact-copy"><span class="eyebrow">ОБСУДИМ ПРОЕКТ</span><h2 id="contact-title">Расскажите<br />о вашем проекте</h2><p>Оставьте заявку, и мы свяжемся с вами, чтобы обсудить задачу и предложить варианты реализации.</p><div class="contact-chips"><span>✧ Индивидуальный подход</span><span>⌁ Решения под задачу</span></div></div>
+        <div class="form-wrapper"><form class="lead-form" asp-controller="Leads" asp-action="Create" method="post">
+          <input asp-for="Lead.SubmissionId" type="hidden" />
+          <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+          <div class="form-grid"><div class="field"><label for="lead-name">Имя <b>*</b></label><input asp-for="Lead.Name" id="lead-name" type="text" autocomplete="name" placeholder="Ваше имя" maxlength="100" required /><span asp-validation-for="Lead.Name" class="field-error"></span></div>
+          <div class="field"><label for="lead-phone">Телефон <b>*</b></label><input asp-for="Lead.Phone" id="lead-phone" type="tel" autocomplete="tel" placeholder="+7 (999) 123-45-67" maxlength="50" required /><span asp-validation-for="Lead.Phone" class="field-error"></span></div></div>
+          <div class="form-grid"><div class="field"><label for="lead-email">Email</label><input asp-for="Lead.Email" id="lead-email" type="email" autocomplete="email" placeholder="mail@example.com" maxlength="254" /><span asp-validation-for="Lead.Email" class="field-error"></span></div><div class="field"><label for="lead-service">Услуга <b>*</b></label><select asp-for="Lead.Service" id="lead-service" required>
+            <option value="">Выберите услугу</option>
+            @foreach (var service in Model.Services)
+            {
+              <option value="@service">@service</option>
+            }
+          </select><span asp-validation-for="Lead.Service" class="field-error"></span></div></div>
+          <div class="field"><label for="lead-message">Задача</label><textarea asp-for="Lead.CustomerComment" id="lead-message" rows="3" placeholder="Расскажите о вашем проекте или задайте вопрос..." maxlength="2000"></textarea><span asp-validation-for="Lead.CustomerComment" class="field-error"></span></div>
+          <button class="btn btn-primary btn-submit" type="submit"><span>Отправить заявку</span><span aria-hidden="true">↗</span></button>
+          <p class="form-note"><span aria-hidden="true">⌁</span> Никакого спама, только обсуждение проекта</p><div class="demo-message" role="status" aria-live="polite" hidden></div>
+        </form></div></div></div>
+    </section>
+  </main>
+  <footer class="site-footer"><div class="container footer-top"><a class="brand" href="#top" aria-label="LeadFlow — наверх"><img src="~/images/landing/leadflow-lockup.svg" alt="LeadFlow" width="144" height="36" /></a><span>Разрабатываем программные решения<br />для роста вашего бизнеса.</span><a class="footer-email" href="#contact">Обсудить проект</a></div><div class="container footer-bottom"><span>© @DateTime.UtcNow.Year LeadFlow.</span><span>Программные решения для бизнеса</span></div></footer>
+</div>

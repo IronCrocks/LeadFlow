@@ -1,9 +1,16 @@
 @{
+    Layout = "_LandingLayout";
     ViewData["Title"] = "Заявка отправлена";
 }
 
-<section class="success-page">
-    <h1>Заявка отправлена</h1>
-    <p>Спасибо! Менеджер свяжется с вами в ближайшее время.</p>
-    <a asp-controller="Home" asp-action="Index">Вернуться на главную</a>
-</section>
+<main class="landing-success">
+    <section class="landing-success__card" aria-labelledby="success-title">
+        <a asp-controller="Home" asp-action="Index" class="landing-success__brand" aria-label="LeadFlow — на главную">
+            <img src="~/images/landing/leadflow-lockup.svg" alt="LeadFlow" width="150" height="40" />
+        </a>
+        <span class="landing-success__icon" aria-hidden="true">✓</span>
+        <h1 id="success-title">Заявка отправлена</h1>
+        <p>Спасибо! Мы получили ваши данные и свяжемся с вами, чтобы обсудить задачу.</p>
+        <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Вернуться на главную <span aria-hidden="true">↗</span></a>
+    </section>
+</main>
